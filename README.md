@@ -30,7 +30,7 @@ This repository is a fork of **[MaryNCRT's Ultimate Mortal Kombat 3 iOS decompil
 
 - Plays on a real PS Vita (vitaGL, SDL2 audio). Fight loads use an asset pack (`umk3.pak`) built from your `.ipa`.
 - Known: Classic Sub-Zero's arm kombo has missing poses — the iOS release's own frame lists lack them (`RPCOMBO6`–`RPCOMBO10`); the port borrows the four that exist elsewhere and holds the last pose for the fifth, which no fighter has.
-- Changes from 2026-11-14 (batched blood drops, lighter log, kombo backports from upstream) build cleanly and have been run on a Vita; the kombo options were tried (the default `kombo_slide=1` plays best). See [`docs/PROGRESS.md`](docs/PROGRESS.md).
+- Changes from 2026-11-14 (batched blood drops, lighter log, kombo backports from upstream, the tables loaded from `umk3_tables.bin`) build cleanly and have been run on a Vita; the kombo options were tried (the default `kombo_slide=1` plays best). See [`docs/PROGRESS.md`](docs/PROGRESS.md).
 
 ### Installing
 

@@ -50,7 +50,8 @@ User report: the Vita build runs well; asked for a review and the improvements.
 - Published as https://github.com/gmejia11/UMK3-Vita (2026-11-14): game artwork, data
   and the .ipa's iTunes files kept out (.gitignore); the icon and LiveArea are made from
   the player's .ipa by `vita/make_livearea.py`; upstream's CI workflows removed.
-- A VPK with no game data (2026-11-14, NOT yet run on a Vita). The PC build compiles
+- A VPK with no game data (2026-11-14; run on the user's Vita: starts and plays as before, with
+  umk3_tables.bin copied next to the old data folder). The PC build compiles
   the tables extracted from the binary (logic_tables.c, level_info.c, seq_data.c) into
   the program. On the Vita, `vita/tables_split.py` (called by `umk3_vita_split_tables`
   in vita.cmake, hooked in CMakeLists.txt) compiles them as zero-filled stubs and writes
