@@ -4,7 +4,7 @@
 
 **A native PlayStation Vita port of *Ultimate Mortal Kombat 3* for iOS, built from the decompilation of the iOS release (v1.2.59).**
 
-Based on [MaryNCRT/Ultimate-Mortal-Kombat-3-iOS-Decompiled](https://github.com/MaryNCRT/Ultimate-Mortal-Kombat-3-iOS-Decompiled) · Rendered with [vitaGL](https://github.com/Rinnegatamante/vitaGL) by Rinnegatamante · [Vita notes (Español)](vita/README_VITA.md)
+Based on [MaryNCRT/Ultimate-Mortal-Kombat-3-iOS-Decompiled](https://github.com/MaryNCRT/Ultimate-Mortal-Kombat-3-iOS-Decompiled) · Rendered with [vitaGL](https://github.com/Rinnegatamante/vitaGL) by Rinnegatamante · [Vita build & settings](vita/README_VITA.md)
 
 </div>
 
@@ -21,7 +21,7 @@ This repository is a fork of **[MaryNCRT's Ultimate Mortal Kombat 3 iOS decompil
 
 - Plays on a real PS Vita (vitaGL, SDL2 audio). Fight loads use an asset pack (`umk3.pak`) built from your `.ipa`.
 - Known: Classic Sub-Zero's arm kombo has missing poses — the iOS release's own frame lists lack them (`RPCOMBO6`–`RPCOMBO10`); the port borrows the four that exist elsewhere and holds the last pose for the fifth, which no fighter has.
-- Changes from 2026-11-14 (batched blood drops, lighter log, kombo backports from upstream) compile and build but are **not yet played on a Vita**. See [`docs/PROGRESS.md`](docs/PROGRESS.md).
+- Changes from 2026-11-14 (batched blood drops, lighter log, kombo backports from upstream) build cleanly and have been run on a Vita; the kombo options were tried (the default `kombo_slide=1` plays best). See [`docs/PROGRESS.md`](docs/PROGRESS.md).
 
 ### Building (Linux / WSL)
 
@@ -33,7 +33,7 @@ python3 vita/apply_cmake_patch.py      # once; idempotent
 # -> build-vita/umk3.vpk, vita/data/ (game files) and vita/data/umk3.pak
 ```
 
-Install the VPK with VitaShell, then copy the data to `ux0:data/umk3/` (`./vita/deploy_data.sh <VITA_IP> --todo` over VitaShell's FTP). Settings are in `ux0:data/umk3/vita.cfg`; see [`vita/README_VITA.md`](vita/README_VITA.md).
+Install the VPK with VitaShell, then copy the data to `ux0:data/umk3/` (`./vita/deploy_data.sh <VITA_IP> --all` over VitaShell's FTP). Settings are in `ux0:data/umk3/vita.cfg`; see [`vita/README_VITA.md`](vita/README_VITA.md).
 
 **Controls:** Square = High Punch, Cross = Low Punch, Triangle = High Kick, Circle = Low Kick, R = Block, L (or the rear touch pad's top-left corner) = Run, Start = Pause, Select = Moves list.
 

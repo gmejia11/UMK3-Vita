@@ -22,11 +22,11 @@ User report: the Vita build runs well; asked for a review and the improvements.
 - `vita/src/vita_plat.c`: rear touch read once per frame.
 - Verified: the Vita build compiles with no warnings, the VPK packs, and `objdump` shows
   both game call sites of `MaintainParticles` going through the wrapper. **Not played**:
-  frame rate and look of the blood unmeasured. Check with `prof=1` (`gotas:` line).
+  frame rate and look of the blood unmeasured. Check with `prof=1` (`drops:` line).
 - Issue #114 again, on the Vita (user, 2026-11-14): some kombos do not finish; in
   Scorpion's kick kombo the last kick leaves the opponent sliding away instead of
   knocked down. `vita_prof.c` now copies the game's `separate us:`, `corner trap:` and
-  `death scream:` printf lines into vita_log.txt (`juego: fotograma=...`); they were
+  `death scream:` printf lines into vita_log.txt (`game: frame=...`); they were
   invisible on the Vita. Open: whether it is the chain rule (`t_separate_us` ->
   `t_stumble_back_vel`), the corner rule, the port, or the original game; needs that log,
   a try with `chain=0`, and the same kombo on the PC build.
@@ -47,7 +47,16 @@ User report: the Vita build runs well; asked for a review and the improvements.
 - Still open: `chain=1` (in the user's vita.cfg) changes gameplay from inside
   `mkreact.c`; the `other.c` cursor guards may be removable if `cursor_bad.txt` stays empty
   with `diag=1`; no 2nd pad, language fixed to "en", `plat_ask` always accepts.
-- This checkout is not a git repository, so nothing was committed or pushed.
+- Published as https://github.com/gmejia11/UMK3-Vita (2026-11-14): game artwork, data
+  and the .ipa's iTunes files kept out (.gitignore); the icon and LiveArea are made from
+  the player's .ipa by `vita/make_livearea.py`; upstream's CI workflows removed.
+- Translated to English (2026-11-14): everything Vita-specific -- `vita/` (README,
+  sources, scripts), the `UMK3_VITA` comments in the shared code, and the log lines:
+  `CARGA` -> `LOAD`, `gotas:` -> `drops:`, `juego: fotograma=` -> `game: frame=`,
+  `lenta:` -> `slow:`, `quien:` -> `who:`, `tiron:` -> `hitch:`, `ancla(` -> `anchor(`.
+  vita.cfg keys unchanged. `deploy_data.sh --all` (the old `--todo` still works).
+  Upstream files that were already partly in Spanish were left as upstream has them.
+  Fixed a missing prototype for `vita_au_end` (sdl_audio.c). Builds with no warnings.
 
 ## PS Vita: fight load time (2026-11-04, Claude Opus 5.5) -- run on the user's Vita
 

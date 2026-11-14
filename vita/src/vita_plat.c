@@ -1,7 +1,7 @@
-/* vita_plat.c -- implementa platform.h para PS Vita.
- *   ventana/GL: vitaGL     input: sceCtrl + sceTouch     tiempo: sceKernel
- * Todo es WEAK: si ui_alert.c / sdl_audio.c ya definen algo, su version gana sin error de
- * "multiple definition"; lo que falte lo cubre esto (stubs inofensivos). */
+/* vita_plat.c -- implements platform.h for the PS Vita.
+ *   window/GL: vitaGL     input: sceCtrl + sceTouch     time: sceKernel
+ * Everything is WEAK: if ui_alert.c / sdl_audio.c already define something, their version wins with no
+ * "multiple definition" error; whatever is missing is covered here (harmless stubs). */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,7 +20,7 @@
 #define SCR_W 960
 #define SCR_H 544
 
-int _newlib_heap_size_user = 96 * 1024 * 1024;   /* RAM de usuario para malloc */
+int _newlib_heap_size_user = 96 * 1024 * 1024;   /* user RAM for malloc */
 
 WEAK int plat_open_borderless = 0;
 WEAK void (*plat_ask_hook)(int begin) = 0;
@@ -39,7 +39,7 @@ static int d_down(void)  { return B(SCE_CTRL_DOWN)  || g_pad.ly > 192; }
 static int d_left(void)  { return B(SCE_CTRL_LEFT)  || g_pad.lx < 64;  }
 static int d_right(void) { return B(SCE_CTRL_RIGHT) || g_pad.lx > 192; }
 
-/* Mapeo: Cuadrado=HP Triangulo=LP R=Block X=HK Circulo=LK L=Run */
+/* Mapping: Square=HP Triangle=LP R=Block Cross=HK Circle=LK L=Run */
 static int pad_word(void) {
   int w = 0;
   if (d_up())    w |= 1 << 0;
@@ -55,17 +55,17 @@ static int pad_word(void) {
   return w;
 }
 
-/* ------------------------------------------------------------ ventana / GL */
-/* Tamanos de memoria de vitaGL, editables SIN recompilar: ux0:data/umk3/vita.cfg
-   (lineas "clave=valor"; los valores son MB).  Claves: circular_pool_mb (0 = defecto de vitaGL, 32),
-   legacy_pool_mb (defecto 16), ram_threshold_mb (defecto 16). */
+/* ------------------------------------------------------------ window / GL */
+/* vitaGL memory sizes, editable WITHOUT recompiling: ux0:data/umk3/vita.cfg
+   ("key=value" lines; values in MB).  Keys: circular_pool_mb (default 12; 0 = vitaGL's own, 32),
+   legacy_pool_mb (default 4), ram_threshold_mb (default 8). */
 unsigned vita_cfg_cp, vita_cfg_lp, vita_cfg_th;
-int vita_rear_swap;             /* vita.cfg rearswap=1: si el panel trasero sale con los lados cambiados */
-int vita_rear_on = 1;           /* vita.cfg rear=0 apaga el panel trasero (L2/R2) */
-int vita_tex16;                /* 0 = RGBA8888 (defecto); 1 = opacas a RGB565; 2 = ademas con alfa a RGBA4444 */
-/* vita.cfg se lee UNA vez a memoria: antes se abria una vez por clave (~20 aperturas en la tarjeta al arrancar). */
+int vita_rear_swap;             /* vita.cfg rearswap=1: if the rear pad's sides come out swapped */
+int vita_rear_on = 1;           /* vita.cfg rear=0 turns the rear pad (L2/R2) off */
+int vita_tex16;                /* 0 = RGBA8888 (default); 1 = opaque ones to RGB565; 2 = also those with alpha to RGBA4444 */
+/* vita.cfg is read into memory ONCE: it used to be opened once per key (~20 opens on the card at start-up). */
 static char g_cfg[4096];
-static int g_cfg_state;                 /* 0 = sin leer, 1 = leido, -1 = no existe */
+static int g_cfg_state;                 /* 0 = not read, 1 = read, -1 = does not exist */
 static unsigned cfg_mb(const char *key, unsigned def) {
   if (g_cfg_state == 0) {
     FILE *f = fopen("ux0:data/umk3/vita.cfg", "r");
@@ -91,9 +91,9 @@ WEAK bool plat_open(const char *title, int width, int height) {
   sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
   sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, SCE_TOUCH_SAMPLING_STATE_START);
   sceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, SCE_TOUCH_SAMPLING_STATE_START);
-  /* Port Vita: relojes al maximo que da una app (CPU 444, bus 222, GPU 222, xbar 166 MHz). Por defecto una app corre
-   * a CPU 333 / GPU 111: la carga de una pelea (descompresion de texturas, montaje de los personajes) es casi toda CPU.
-   * vita.cfg clock=0 deja los relojes del sistema. */
+  /* Vita port: clocks at the most an app gets (CPU 444, bus 222, GPU 222, xbar 166 MHz). By default an app runs
+   * at CPU 333 / GPU 111: loading a fight (texture decompression, assembling the fighters) is almost all CPU.
+   * vita.cfg clock=0 keeps the system's clocks. */
   if (cfg_mb("clock", 1)) {
     scePowerSetArmClockFrequency(444);
     scePowerSetBusClockFrequency(222);
@@ -104,12 +104,12 @@ WEAK bool plat_open(const char *title, int width, int height) {
   vita_cfg_lp = cfg_mb("legacy_pool_mb", 4);
   vita_cfg_th = cfg_mb("ram_threshold_mb", 8);
   vita_tex16 = (int)cfg_mb("tex16", 0);
-  /* facebatch=1 (defecto): las gotas de sangre se dibujan agrupadas por textura (draw_gl.c), asi que ya no hace falta saltarse
-   * gotas: facemax pasa a 0 (todas). facebatch=0 vuelve a una llamada por gota, con el limite de 200 de antes. */
+  /* facebatch=1 (default): blood drops are drawn batched by texture (draw_gl.c), so there is no need to skip drops any
+   * more: facemax becomes 0 (all of them). facebatch=0 goes back to one draw call per drop, with the old limit of 200. */
   { extern volatile int vita_face_batch; vita_face_batch = (int)cfg_mb("facebatch", 1); }
   { extern volatile int vita_face_max, vita_face_batch; vita_face_max = (int)cfg_mb("facemax", vita_face_batch ? 0 : 200); }
-  /* kombo_slide=0: los kombos ya no separan a los luchadores (issue #114; fuera de linea). Solo si la clave esta en vita.cfg, para no
-   * pisar un kombo_slide= de umk3.ini, que se lee antes. */
+  /* kombo_slide=0: kombos no longer push the fighters apart (issue #114; offline). Only when the key is in vita.cfg, so as not
+   * to override a kombo_slide= from umk3.ini, which is read earlier. */
   { extern int port_kombo_slide; unsigned ks = cfg_mb("kombo_slide", 2u); if (ks != 2u) port_kombo_slide = ks != 0; }
   { extern volatile int vita_log_on; vita_log_on = (int)cfg_mb("log", 1); }
   { extern volatile int vita_skipdraw; vita_skipdraw = (int)cfg_mb("skipdraw", 1); }
@@ -125,9 +125,9 @@ WEAK bool plat_open(const char *title, int width, int height) {
   { extern volatile int vita_par; vita_par = (int)cfg_mb("par", 0); }
   { extern int vita_ani_keep; vita_ani_keep = (int)cfg_mb("anikeep", 0); }
   { extern volatile int vita_zmalloc; vita_zmalloc = (int)cfg_mb("zmalloc", 0); }
-  if (vita_cfg_cp) vglSetCircularPoolSize(vita_cfg_cp * 1024u * 1024u);   /* antes de vglInit */
+  if (vita_cfg_cp) vglSetCircularPoolSize(vita_cfg_cp * 1024u * 1024u);   /* before vglInit */
   vglInitExtended(vita_cfg_lp * 1024u * 1024u, SCR_W, SCR_H, vita_cfg_th * 1024u * 1024u, SCE_GXM_MULTISAMPLE_NONE);
-  { extern volatile int vita_gl_ready; vita_gl_ready = 1; }   /* el hilo de log ya puede consultar vitaGL */
+  { extern volatile int vita_gl_ready; vita_gl_ready = 1; }   /* the log thread may now query vitaGL */
   g_t0 = sceKernelGetProcessTimeWide();
   g_open = 1;
   read_pad();
@@ -135,8 +135,8 @@ WEAK bool plat_open(const char *title, int width, int height) {
 }
 WEAK void plat_close(void) { if (g_open) { g_open = 0; } }
 WEAK void plat_quit(void) { g_quit = 1; }
-/* Mejoras del port (no estan en el juego original) que en Vita son demasiado pesadas.
-   Simbolo "weak": si el nombre no existe en tu version, simplemente no hace nada. */
+/* Port enhancements (not in the original game) that are too heavy on the Vita.
+   "weak" symbol: if the name does not exist in your version, this simply does nothing. */
 extern int port_smooth_models __attribute__((weak));
 WEAK bool plat_poll(void) {
   read_pad();
@@ -148,7 +148,7 @@ WEAK void plat_size(int *w, int *h) { if (w) *w = SCR_W; if (h) *h = SCR_H; }
 WEAK int  plat_refresh_hz(void) { return 60; }
 WEAK bool plat_focused(void) { return true; }
 WEAK void plat_input_used(void) {}
-WEAK void *plat_gl_proc(const char *name) { (void)name; return 0; }  /* sin FBO por ahora */
+WEAK void *plat_gl_proc(const char *name) { (void)name; return 0; }  /* no FBO for now */
 
 WEAK double plat_time(void) { return (double)(sceKernelGetProcessTimeWide() - g_t0) / 1e6; }
 WEAK void plat_wait_until(double t) {
@@ -168,14 +168,14 @@ WEAK int  plat_monitor_count(void) { return 1; }
 WEAK void plat_monitor_name(int i, char *out, int n) { (void)i; snprintf(out, n, "PS Vita 960x544 *"); }
 WEAK void plat_monitor_list(void) { printf("0\tPS Vita\n"); }
 
-/* ------------------------------------------------------------ texto / mouse */
+/* ------------------------------------------------------------ text / mouse */
 WEAK int  plat_text_take(char *out, int n) { (void)out; (void)n; return 0; }
 WEAK void plat_text_clear(void) {}
 WEAK int  plat_clipboard_text(char *out, int n) { (void)out; (void)n; return 0; }
 WEAK int  plat_clipboard_set(const char *utf8) { (void)utf8; return 0; }
 WEAK void plat_language(char *out, int n) { snprintf(out, n, "en"); }
 
-WEAK int plat_mouse(int *x, int *y) {           /* pantalla tactil frontal = puntero */
+WEAK int plat_mouse(int *x, int *y) {           /* front touch screen = pointer */
   SceTouchData t;
   sceTouchPeek(SCE_TOUCH_PORT_FRONT, &t, 1);
   if (t.reportNum > 0) {
@@ -188,14 +188,14 @@ WEAK int plat_mouse(int *x, int *y) {           /* pantalla tactil frontal = pun
 WEAK int plat_mouse_wheel(void) { return 0; }
 
 WEAK int plat_ask(const unsigned short *msg, const unsigned short *ok, const unsigned short *cancel) {
-  (void)msg; (void)ok; (void)cancel; return 0;   /* acepta siempre */
+  (void)msg; (void)ok; (void)cancel; return 0;   /* always accepts */
 }
 
-/* ------------------------------------------------------------ teclas / pads */
-/* Panel tactil TRASERO como L2/R2. Solo cuentan las dos esquinas de ARRIBA (donde no descansan los dedos al agarrar la consola):
- * esquina izquierda = L2 (correr), esquina derecha = R2 (especial). El panel trasero esta espejado respecto a la pantalla; si te
- * salen cambiadas, rearswap=1 en vita.cfg. */
-static int g_rear_l2, g_rear_r2;          /* leido UNA vez por fotograma en read_pad (antes, hasta 4 lecturas del panel) */
+/* ------------------------------------------------------------ keys / pads */
+/* REAR touch pad as L2/R2. Only the two TOP corners count (where the fingers do not rest while holding the console):
+ * left corner = L2 (run), right corner = R2 (special). The rear pad is mirrored relative to the screen; if they come
+ * out swapped for you, rearswap=1 in vita.cfg. */
+static int g_rear_l2, g_rear_r2;          /* read ONCE per frame in read_pad (it used to be read up to 4 times) */
 static void rear_poll(void) {
   SceTouchData t;
   int *l2 = &g_rear_l2, *r2 = &g_rear_r2;
@@ -204,8 +204,8 @@ static void rear_poll(void) {
   sceTouchPeek(SCE_TOUCH_PORT_BACK, &t, 1);
   for (unsigned i = 0; i < t.reportNum && i < 8; i++) {
     int x = t.report[i].x, y = t.report[i].y;
-    if (y > 380) continue;                                   /* franja superior (el panel mide ~890 de alto) */
-    int mine_right = x < 640, mine_left = x > 1279;          /* espejado: x pequena = lado derecho del jugador */
+    if (y > 380) continue;                                   /* top strip (the pad is ~890 high) */
+    int mine_right = x < 640, mine_left = x > 1279;          /* mirrored: small x = the player's right side */
     if (vita_rear_swap) { int tmp = mine_right; mine_right = mine_left; mine_left = tmp; }
     if (mine_left) *l2 = 1;
     if (mine_right) *r2 = 1;
@@ -221,19 +221,19 @@ WEAK int plat_key(int code) {
     case PK_DOWN:  return d_down();
     case PK_LEFT:  return d_left();
     case PK_RIGHT: return d_right();
-    /* Distribucion del PC (umk3.ini: pad_hp=WEST pad_lp=SOUTH pad_hk=NORTH pad_lk=EAST pad_block=R1 pad_run=L1+L2) */
-    case PK_HP:    return B(SCE_CTRL_SQUARE);                          /* cuadrado  = puno fuerte */
-    case PK_LP:    return B(SCE_CTRL_CROSS);                           /* X         = puno debil  */
-    case PK_BL:    return B(SCE_CTRL_RTRIGGER);                        /* R         = bloqueo     */
-    case PK_HK:    return B(SCE_CTRL_TRIANGLE);                        /* triangulo = patada fuerte */
-    case PK_LK:    return B(SCE_CTRL_CIRCLE);                          /* circulo   = patada debil */
-    case PK_RUN:   return B(SCE_CTRL_LTRIGGER) || rear_l2();                        /* L         = correr      */
-    /* Modo de 5 botones (pad5_p=WEST+NORTH pad5_k=SOUTH+EAST pad5_b=R1 pad5_r=L1+L2): antes NO estaban y los combos no iban */
-    case PK_5_P:   return B(SCE_CTRL_SQUARE) || B(SCE_CTRL_TRIANGLE);  /* puno  = cuadrado o triangulo */
-    case PK_5_B:   return B(SCE_CTRL_RTRIGGER);                        /* bloqueo = R */
-    case PK_5_K:   return B(SCE_CTRL_CROSS) || B(SCE_CTRL_CIRCLE);     /* patada = X o circulo */
-    case PK_5_R:   return B(SCE_CTRL_LTRIGGER) || rear_l2();                        /* correr = L */
-    case PK_SPECIAL: return rear_r2();                                  /* R2 = panel trasero, derecha */
+    /* PC layout (umk3.ini: pad_hp=WEST pad_lp=SOUTH pad_hk=NORTH pad_lk=EAST pad_block=R1 pad_run=L1+L2) */
+    case PK_HP:    return B(SCE_CTRL_SQUARE);                          /* square    = high punch */
+    case PK_LP:    return B(SCE_CTRL_CROSS);                           /* cross     = low punch  */
+    case PK_BL:    return B(SCE_CTRL_RTRIGGER);                        /* R         = block      */
+    case PK_HK:    return B(SCE_CTRL_TRIANGLE);                        /* triangle  = high kick  */
+    case PK_LK:    return B(SCE_CTRL_CIRCLE);                          /* circle    = low kick   */
+    case PK_RUN:   return B(SCE_CTRL_LTRIGGER) || rear_l2();                        /* L         = run        */
+    /* 5-button mode (pad5_p=WEST+NORTH pad5_k=SOUTH+EAST pad5_b=R1 pad5_r=L1+L2): these were missing and combos did not work */
+    case PK_5_P:   return B(SCE_CTRL_SQUARE) || B(SCE_CTRL_TRIANGLE);  /* punch = square or triangle */
+    case PK_5_B:   return B(SCE_CTRL_RTRIGGER);                        /* block = R */
+    case PK_5_K:   return B(SCE_CTRL_CROSS) || B(SCE_CTRL_CIRCLE);     /* kick  = cross or circle */
+    case PK_5_R:   return B(SCE_CTRL_LTRIGGER) || rear_l2();                        /* run   = L */
+    case PK_SPECIAL: return rear_r2();                                  /* R2 = rear pad, right */
     case PK_PAUSE: return B(SCE_CTRL_START);
     case PK_MOVES: return B(SCE_CTRL_SELECT);
     case PK_OK:    return B(SCE_CTRL_CROSS);
@@ -278,7 +278,7 @@ WEAK int plat_pad_read(PLAT_PAD *o) {
   if (B(SCE_CTRL_START))    o->buttons |= 1u << PB_START;
   o->rx = g_pad.rx < 64 ? -1 : (g_pad.rx > 192 ? 1 : 0);
   snprintf(o->name, sizeof o->name, "PS Vita");
-  o->kind = 4;                                   /* iconos estilo PlayStation */
+  o->kind = 4;                                   /* PlayStation-style icons */
   return 1;
 }
 WEAK void plat_pad_select(const char *which) { (void)which; }
@@ -300,8 +300,8 @@ WEAK int plat_pad_glyph_style(int player, int style) {
 WEAK int plat_pad_glyph_kind(int player, int kind) { (void)player; return kind; }
 WEAK int plat_pad_sony_kind(unsigned product) { (void)product; return 4; }
 
-/* ------------------------------------------------------------ UI dibujada por el backend:
-   NULL = "usa tu propia fuente" (ver platform.h). Si ui_alert.c las define, ganan. */
+/* ------------------------------------------------------------ UI drawn by the backend:
+   NULL = "use your own font" (see platform.h). If ui_alert.c defines them, they win. */
 WEAK unsigned char *plat_ui_menu(const char *title, const char *const *tabs, int ntab, int tab,
     const char *const *label, const char *const *value, const int *enabled, int n, int sel,
     const char *footer, float width, int split, float s, int *w, int *h) {
@@ -322,8 +322,8 @@ WEAK unsigned char *plat_ui_gradient(const struct plat_grad *g, float k,
   (void)g;(void)k;(void)hit;(void)w;(void)h; return 0;
 }
 
-/* ------------------------------------------------------------ audio: stubs de respaldo.
-   Lo normal es que sdl_audio.c (SDL2 de vdpm) defina todo esto y gane. */
+/* ------------------------------------------------------------ audio: fallback stubs.
+   Normally sdl_audio.c (SDL2 from vdpm) defines all of this and wins. */
 WEAK int  plat_audio_open(int rate) { (void)rate; return 0; }
 WEAK void plat_audio_close(void) {}
 WEAK int  plat_audio_play(const unsigned char *pcm, int frames, float gain) { (void)pcm;(void)frames;(void)gain; return 0; }

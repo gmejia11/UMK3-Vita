@@ -1,9 +1,9 @@
-/* vita_trace.c -- DIAGNOSTICO TEMPORAL: marca en que funcion de audio esta el hilo principal.
-   Se activa con -Wl,--wrap (ver vita.cmake). vita_log.c imprime vita_stage cada 2 s. */
+/* vita_trace.c -- diagnostics: marks which audio function the main thread is in.
+   Enabled through -Wl,--wrap (see vita.cmake). vita_log.c prints vita_stage every 2 s. */
 const char *volatile vita_stage = "";
 
 #define ENTER(n)  (vita_stage = n)
-#define LEAVE(n)  (vita_stage = "tras:" n)
+#define LEAVE(n)  (vita_stage = "after:" n)
 
 void *__real_Mix_LoadMUS(const char *);
 void *__wrap_Mix_LoadMUS(const char *f) { ENTER("Mix_LoadMUS"); void *r = __real_Mix_LoadMUS(f); LEAVE("Mix_LoadMUS"); return r; }
@@ -28,6 +28,6 @@ void __wrap_SDL_PauseAudioDevice(unsigned d, int p) { ENTER("SDL_PauseAudioDevic
 void __real_SDL_WaitThread(void *, int *);
 void __wrap_SDL_WaitThread(void *t, int *s) { ENTER("SDL_WaitThread"); __real_SDL_WaitThread(t, s); LEAVE("SDL_WaitThread"); }
 
-/* --- vitaGL: gpu_alloc_mapped_temp (memoria temporal de GPU para arrays de vertices) --- */
+/* --- vitaGL: gpu_alloc_mapped_temp (temporary GPU memory for vertex arrays) --- */
 volatile unsigned vita_alloc_in, vita_alloc_kb, vita_alloc_max_kb, vita_alloc_n;
-/* (envoltorio retirado: gpu_alloc_mapped_temp no es un simbolo enlazable, es macro o inline) */
+/* (wrapper removed: gpu_alloc_mapped_temp is not a linkable symbol, it is a macro or inline) */

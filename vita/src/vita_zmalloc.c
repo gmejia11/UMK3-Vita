@@ -1,7 +1,7 @@
-/* vita_zmalloc.c -- malloc() devuelve memoria a CERO (como lo hace un proceso nuevo en el PC).
- * Hipotesis: el codigo decompilado lee mas alla del final de algun buffer esperando ceros;
- * en la Vita la memoria reutilizada trae restos (por ejemplo pixeles de texturas). Se activa con
- * -Wl,--wrap=malloc (vita.cmake). Se puede apagar con zmalloc=0 en ux0:data/umk3/vita.cfg. */
+/* vita_zmalloc.c -- malloc() returns ZEROED memory (as a fresh process does on the PC).
+ * Hypothesis: the decompiled code reads past the end of some buffer expecting zeros;
+ * on the Vita reused memory carries leftovers (texture pixels, for instance). Hooked with
+ * -Wl,--wrap=malloc (vita.cmake); enabled with zmalloc=1 in ux0:data/umk3/vita.cfg (off by default). */
 #include <stddef.h>
 #include <string.h>
 

@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""Genera las imagenes del VPK (icono y LiveArea) a partir de TU .ipa.
+"""Makes the VPK's images (icon and LiveArea) from YOUR .ipa.
 
-El repositorio no trae ninguna imagen del juego (tienen copyright): este script
-las crea en vita/sce_sys/ con el iTunesArtwork del .ipa de cada usuario.
+The repository carries no game images (they are copyrighted): this script
+creates them in vita/sce_sys/ from the iTunesArtwork in each user's .ipa.
 
     vita/sce_sys/icon0.png                       128x128
     vita/sce_sys/livearea/contents/bg.png        840x500
     vita/sce_sys/livearea/contents/startup.png   280x158
 
-Todas en PNG de 8 bits con paleta, como pide la Vita. Sin Pillow, o sin
-iTunesArtwork en el .ipa, crea imagenes lisas de un color para que el VPK se
-pueda empaquetar igual.
+All 8-bit palette PNGs, as the Vita wants. Without Pillow, or without
+iTunesArtwork in the .ipa, it makes plain single-colour images so the VPK can
+still be packed.
 
-Uso: python3 vita/make_livearea.py UMK3.ipa
+Usage: python3 vita/make_livearea.py UMK3.ipa
 """
 import io
 import os
@@ -31,7 +31,7 @@ BACKGROUND = (12, 12, 20)
 
 
 def artwork_from_ipa(path):
-    """Los bytes del iTunesArtwork (JPEG 512x512) del .ipa, o None."""
+    """The bytes of the .ipa's iTunesArtwork (a 512x512 JPEG), or None."""
     if not path or not os.path.isfile(path):
         return None
     try:
@@ -45,7 +45,7 @@ def artwork_from_ipa(path):
 
 
 def solid_png(path, size, rgb):
-    """PNG de paleta de un solo color, sin Pillow."""
+    """A single-colour palette PNG, without Pillow."""
     w, h = size
 
     def chunk(kind, data):
@@ -74,8 +74,8 @@ def main():
         Image = None
 
     if art is None or Image is None:
-        why = "sin Pillow (pip install pillow)" if Image is None else "el .ipa no trae iTunesArtwork"
-        print(f"make_livearea: {why}; imagenes lisas en vita/sce_sys/")
+        why = "no Pillow (pip install pillow)" if Image is None else "the .ipa has no iTunesArtwork"
+        print(f"make_livearea: {why}; plain images in vita/sce_sys/")
         for path, size in OUT.values():
             solid_png(path, size, BACKGROUND)
         return
@@ -85,12 +85,12 @@ def main():
         if key == "icon0":
             img = src.resize((w, h), Image.LANCZOS)
         else:
-            # el icono centrado sobre un fondo oscuro, con margen
+            # the icon centred on a dark background, with a margin
             side = int(min(w, h) * (0.8 if key == "bg" else 0.9))
             img = Image.new("RGB", (w, h), BACKGROUND)
             img.paste(src.resize((side, side), Image.LANCZOS), ((w - side) // 2, (h - side) // 2))
         img.quantize(colors=256, method=Image.MEDIANCUT).save(path, optimize=True)
-    print("make_livearea: icono y LiveArea creados desde el .ipa en vita/sce_sys/")
+    print("make_livearea: icon and LiveArea made from the .ipa in vita/sce_sys/")
 
 
 if __name__ == "__main__":

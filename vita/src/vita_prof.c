@@ -1,6 +1,6 @@
-/* vita_prof.c -- PERFILADOR. Mide cuanto tarda y cuantas veces se llama a las funciones de dibujo de vitaGL
- * (glDrawElements, glDrawArrays, glEnd = cada quad del modo inmediato, glTexImage2D) y el tiempo dentro de
- * vglSwapBuffers. Se activa con prof=1 en ux0:data/umk3/vita.cfg; vita_log.c imprime los acumulados. */
+/* vita_prof.c -- PROFILER. Measures how long vitaGL's draw functions take and how often they are called
+ * (glDrawElements, glDrawArrays, glEnd = each immediate-mode quad, glTexImage2D) and the time inside
+ * vglSwapBuffers. Enabled with prof=1 in ux0:data/umk3/vita.cfg; vita_log.c prints the totals. */
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
@@ -33,7 +33,7 @@ void __wrap_glTexImage2D(unsigned target, int level, int ifmt, int w, int h, int
   T0(); __real_glTexImage2D(target, level, ifmt, w, h, border, fmt, type, data); T1(3);
 }
 
-volatile unsigned long long vita_prof_bytes;     /* bytes leidos con fread */
+volatile unsigned long long vita_prof_bytes;     /* bytes read with fread */
 
 int __real_lime_pvr_load(const void *path, void *out);
 int __wrap_lime_pvr_load(const void *path, void *out) {
@@ -50,9 +50,9 @@ unsigned __wrap_fread(void *p, unsigned size, unsigned n, void *f) {
   T1(7); return r;
 }
 
-/* ---- rutinas de hilo LENTAS (solo con prof=1) ----
- * mk3_update cronometra cada llamada a una rutina de hilo; las que pasan de 8 ms van a un anillo en memoria y el hilo del registro
- * (vita_log.c) las escribe en vita_log.txt: el hilo del juego no abre ningun archivo. Tambien cuenta errores de OpenGL. */
+/* ---- SLOW thread routines (prof=1 only) ----
+ * mk3_update times every call to a thread routine; those over 8 ms go into a ring in memory and the log thread
+ * (vita_log.c) writes them to vita_log.txt: the game's thread opens no file. It also counts OpenGL errors. */
 volatile unsigned vita_gl_err_n, vita_gl_err_last;
 struct vita_slow_ev { unsigned long long us; unsigned handler, token, frame; };
 static struct vita_slow_ev g_slow[32];
@@ -70,12 +70,12 @@ void vita_slow_end(unsigned long long t0, void *f, unsigned token) {
   __sync_synchronize();
   g_slow_w++;
 }
-/* lo llama el hilo del registro cada 2 s: escribe una linea por cada evento pendiente */
+/* called by the log thread every 2 s: writes one line per pending event */
 void vita_slow_drain(void (*out)(const char *)) {
   char l[200];
   if (vita_prof) {
     extern volatile unsigned vita_ticks_total, vita_ticks_skipped;
-    snprintf(l, sizeof l, "  pasos: logica=%u sin_dibujo=%u\n", vita_ticks_total, vita_ticks_skipped);
+    snprintf(l, sizeof l, "  ticks: logic=%u undrawn=%u\n", vita_ticks_total, vita_ticks_skipped);
     out(l);
   }
   vita_note_drain(out);
@@ -87,20 +87,20 @@ void vita_slow_drain(void (*out)(const char *)) {
   while (g_slow_r != g_slow_w) {
     struct vita_slow_ev e = g_slow[g_slow_r & 31];
     g_slow_r++;
-    snprintf(l, sizeof l, "  lenta: fotograma=%u rutina=0x%08x token=0x%x ms=%u ancla(vita_slow_end)=0x%08x\n",
+    snprintf(l, sizeof l, "  slow: frame=%u routine=0x%08x token=0x%x ms=%u anchor(vita_slow_end)=0x%08x\n",
              e.frame, e.handler, e.token, (unsigned)(e.us / 1000ull), (unsigned)(uintptr_t)&vita_slow_end);
     out(l);
   }
-  if (g_slow_lost) { snprintf(l, sizeof l, "  lenta: (%u eventos perdidos por no caber en el anillo)\n", g_slow_lost); out(l); g_slow_lost = 0; }
+  if (g_slow_lost) { snprintf(l, sizeof l, "  slow: (%u events lost, the ring was full)\n", g_slow_lost); out(l); g_slow_lost = 0; }
   if (vita_gl_err_n != g_gl_err_seen) {
-    snprintf(l, sizeof l, "  opengl: errores=%u ultimo=0x%x\n", vita_gl_err_n, vita_gl_err_last);
+    snprintf(l, sizeof l, "  opengl: errors=%u last=0x%x\n", vita_gl_err_n, vita_gl_err_last);
     out(l); g_gl_err_seen = vita_gl_err_n;
   }
 }
 
-/* ---- QUIEN llama a glDrawElements / glDrawArrays / glEnd (solo con prof=1) ----
- * Cuenta, por direccion de retorno (la funcion del juego que dibuja), cuantas llamadas hace y cuanto tardan; el hilo del registro
- * escribe las 8 que mas tiempo suman cada 2 s ("quien:") y se traducen a nombres con slow_symbols/callers_symbols. */
+/* ---- WHO calls glDrawElements / glDrawArrays / glEnd (prof=1 only) ----
+ * Counts, by return address (the game function that draws), how many calls it makes and how long they take; the log thread
+ * writes the 8 with the most time every 2 s ("who:"), to be turned into names with the symbol table. */
 struct vita_cs { unsigned addr, kind, n; unsigned long long us; };
 static struct vita_cs g_cs[64];
 static void cs_add(unsigned kind, void *ra, unsigned long long us) {
@@ -118,16 +118,16 @@ void vita_callers_drain(void (*out)(const char *)) {
     int best = -1;
     for (int k = 0; k < 64; k++) if (t[k].addr && (best < 0 || t[k].us > t[best].us)) best = k;
     if (best < 0) break;
-    snprintf(l, sizeof l, "  quien: tipo=%s addr=0x%08x n=%u ms=%u ancla(vita_slow_end)=0x%08x\n",
+    snprintf(l, sizeof l, "  who: kind=%s addr=0x%08x n=%u ms=%u anchor(vita_slow_end)=0x%08x\n",
              t[best].kind == 0 ? "DE" : t[best].kind == 1 ? "DA" : "End", t[best].addr, t[best].n,
              (unsigned)(t[best].us / 1000ull), (unsigned)(uintptr_t)&vita_slow_end);
     out(l); t[best].addr = 0;
   }
 }
 
-/* ---- TIEMPOS por paso y por fotograma (solo con prof=1) ----
- * mk3_update = la logica del juego; GameCodeMain = un paso entero (logica + preparar y emitir todo el dibujo). Se acumulan con el
- * maximo, y el tiempo ENTRE swaps con su maximo y cuantos pasan de 33/66/100 ms (los tirones que un promedio de 2 s esconde). */
+/* ---- TIMES per tick and per frame (prof=1 only) ----
+ * mk3_update = the game's logic; GameCodeMain = a whole tick (logic + preparing and issuing all the drawing). Summed with the
+ * maximum, and the time BETWEEN swaps with its maximum and how many exceed 33/66/100 ms (the hitches a 2 s average hides). */
 long __real_mk3_update(const long *joy, void **out);
 void __real_GameCodeMain(void);
 struct vita_ph { unsigned long long us; unsigned n, max; };
@@ -145,11 +145,11 @@ long __wrap_mk3_update(const long *joy, void **out) {
   ph_add(&g_ph_mk, t0);
   return r;
 }
-/* Un PASO que tarda >= 60 ms es un tiron: se anota (en memoria; lo escribe el hilo del registro) cuanto de ese paso se fue en las
- * llamadas de dibujo, en subir texturas, en leer archivos, y si era un paso sin dibujo. Separa "la GPU/OpenGL se para" de "el juego
- * (CPU) tarda" y de "disco". */
-/* Tiempo TOTAL (CPU + OpenGL) dentro de las dos funciones que dibujan las mallas de un luchador: el cuerpo (Indexed) y los
- * accesorios (Single). Se miden por paso para ver si el tiron esta dentro de ellas. Mismas firmas que en lime.h (hard-float). */
+/* A TICK that takes >= 60 ms is a hitch: it is noted (in memory; the log thread writes it) how much of that tick went on
+ * draw calls, texture uploads, file reads, and whether it was an undrawn tick. Tells "the GPU/OpenGL stalls" apart from "the game
+ * (CPU) is slow" and from "disk". */
+/* TOTAL time (CPU + OpenGL) inside the two functions that draw a fighter's meshes: the body (Indexed) and the
+ * accessories (Single). Measured per tick to see whether the hitch is inside them. Same signatures as in lime.h (hard-float). */
 void __real_LIME_RenderMeshSingleIndexed(void *frame, void *tex, float grey, const void *fade, long second);
 void __real_LIME_RenderMeshSingle(void *mesh, void *t0, void *t1, float alpha, long flags);
 static volatile unsigned long long g_msi_us, g_ms_us;
@@ -170,9 +170,9 @@ void __wrap_LIME_RenderMeshSingle(void *mesh, void *t0p, void *t1, float alpha, 
 }
 extern int port_vita_nodraw;
 extern volatile unsigned vita_ticks_total;
-/* get_tsound (sound.c) hace un printf("Tsound 0x%x %d") EN CADA LLAMADA ("it ships", dice el decompilado). Se cuentan las llamadas a
- * printf/puts/putchar y su tiempo, y las llamadas a get_tsound, dentro de cada paso. vita.cfg quiet=1 descarta TODO lo que el juego
- * escribe por printf/puts/putchar (experimento: si los tirones desaparecen, era esa salida). */
+/* get_tsound (sound.c) does a printf("Tsound 0x%x %d") ON EVERY CALL ("it ships", says the decompilation). The calls to
+ * printf/puts/putchar and their time, and the calls to get_tsound, are counted within each tick. vita.cfg quiet=1 discards ALL the
+ * game writes through printf/puts/putchar (an experiment: if the hitches go away, it was that output). */
 #include <stdarg.h>
 volatile int vita_quiet = 0;
 int __real_puts(const char *s);
@@ -180,9 +180,9 @@ int __real_putchar(int c);
 long __real_get_tsound(long id);
 static volatile unsigned long long g_pf_us;
 static volatile unsigned g_pf_n, g_ts_n;
-/* Avisos del juego que importan en la Vita (alli printf no se ve): "separate us:" (la regla de la cadena separa a los luchadores,
- * issue #114), "corner trap:" (la regla de la esquina) y "death scream:". Se copian a un anillo en memoria y el hilo del registro los
- * escribe en vita_log.txt con el fotograma; el hilo del juego no toca la tarjeta. Siempre activos (con quiet=1 tambien). */
+/* The game's notices that matter on the Vita (printf is not seen there): "separate us:" (the chain rule pushes the fighters apart,
+ * issue #114), "corner trap:" (the corner rule), "kombo push:" and "death scream:". Copied into a ring in memory; the log thread
+ * writes them to vita_log.txt with the frame; the game's thread does not touch the card. Always on (with quiet=1 too). */
 static char g_note[32][160];
 static unsigned g_note_frame[32];
 static volatile unsigned g_note_w, g_note_r, g_note_lost;
@@ -203,12 +203,12 @@ void vita_note_drain(void (*out)(const char *)) {
   while (g_note_r != g_note_w) {
     unsigned k = g_note_r & 31;
     size_t n = strlen(g_note[k]);
-    snprintf(l, sizeof l, "  juego: fotograma=%u %s%s", g_note_frame[k], g_note[k], (n && g_note[k][n - 1] == '\n') ? "" : "\n");
+    snprintf(l, sizeof l, "  game: frame=%u %s%s", g_note_frame[k], g_note[k], (n && g_note[k][n - 1] == '\n') ? "" : "\n");
     __sync_synchronize();
     g_note_r++;
     out(l);
   }
-  if (g_note_lost) { snprintf(l, sizeof l, "  juego: (%u avisos perdidos, anillo lleno)\n", g_note_lost); out(l); g_note_lost = 0; }
+  if (g_note_lost) { snprintf(l, sizeof l, "  game: (%u notices lost, the ring was full)\n", g_note_lost); out(l); g_note_lost = 0; }
 }
 int __wrap_printf(const char *fmt, ...) {
   va_list ap; int r; unsigned long long t0 = 0;
@@ -281,7 +281,7 @@ void vita_times_drain(void (*out)(const char *)) {
   unsigned fmax = g_fmax, f33 = g_f33, f66 = g_f66, f100 = g_f100, fn = g_fn;
   memset(&g_ph_mk, 0, sizeof g_ph_mk); memset(&g_ph_gcm, 0, sizeof g_ph_gcm);
   g_fmax = g_f33 = g_f66 = g_f100 = g_fn = 0;
-  snprintf(l, sizeof l, "  tiempos: mk3_update n=%u us=%llu max=%u | GameCodeMain n=%u us=%llu max=%u | swaps n=%u max_us=%u >33ms=%u >66ms=%u >100ms=%u\n",
+  snprintf(l, sizeof l, "  times: mk3_update n=%u us=%llu max=%u | GameCodeMain n=%u us=%llu max=%u | swaps n=%u max_us=%u >33ms=%u >66ms=%u >100ms=%u\n",
            mk.n, mk.us, mk.max, gc.n, gc.us, gc.max, fn, fmax, f33, f66, f100);
   out(l);
   {
@@ -291,14 +291,14 @@ void vita_times_drain(void (*out)(const char *)) {
   while (g_hit_r != g_hit_w) {
     struct vita_hitch h = g_hit[g_hit_r & 15];
     g_hit_r++;
-    snprintf(l, sizeof l, "  tiron: paso=%u fotograma=%u dur_us=%u dibujo_us=%u (DE %u DA %u End %u) texup_us=%u leer_us=%u abrir_us=%u decod_us=%u sin_dibujo=%u malla_cuerpo_us=%u malla_accesorios_us=%u printf_us=%u printf_n=%u tsound_n=%u\n",
+    snprintf(l, sizeof l, "  hitch: tick=%u frame=%u dur_us=%u draw_us=%u (DE %u DA %u End %u) texup_us=%u read_us=%u open_us=%u decode_us=%u undrawn=%u body_mesh_us=%u accessory_mesh_us=%u printf_us=%u printf_n=%u tsound_n=%u\n",
              h.tick, h.frame, h.dur, h.de + h.da + h.en, h.de, h.da, h.en, h.tex, h.rd, h.op, h.dec, h.nodraw, h.msi, h.ms, h.pf, h.pfn, h.tsn);
     out(l);
   }
-  if (g_hit_lost) { snprintf(l, sizeof l, "  tiron: (%u perdidos, anillo lleno)\n", g_hit_lost); out(l); g_hit_lost = 0; }
+  if (g_hit_lost) { snprintf(l, sizeof l, "  hitch: (%u lost, the ring was full)\n", g_hit_lost); out(l); g_hit_lost = 0; }
 }
 
-/* ---- cache de sonidos convertidos (sdl_audio.c) y tiempo de las conversiones ---- */
+/* ---- cache of converted sounds (sdl_audio.c) and the conversions' time ---- */
 volatile int vita_sndcache = 1, vita_sndcache_mb = 16;
 struct vita_snd { const void *pcm; int frames, rate; unsigned sum; void *buf; unsigned len; };
 static struct vita_snd g_snd[256];
@@ -320,7 +320,7 @@ int vita_snd_get(const void *pcm, int frames, int rate, void **buf, unsigned *le
   }
   return 0;
 }
-/* 1 = la cache se queda con el buffer (el llamador ya no lo libera); 0 = no cabe, sigue siendo del llamador */
+/* 1 = the cache keeps the buffer (the caller no longer frees it); 0 = it does not fit, it stays the caller's */
 int vita_snd_put(const void *pcm, int frames, int rate, void *buf, unsigned len) {
   struct vita_snd *e;
   if (!vita_sndcache || !pcm || !buf || frames <= 0 || g_snd_n >= 256) return 0;
@@ -339,11 +339,11 @@ void vita_au_drain(void (*out)(const char *)) {
   char l[220];
   unsigned n = g_au_conv_n, hit = g_au_hit, mx = g_au_max; unsigned long long us = g_au_us;
   g_au_conv_n = g_au_hit = g_au_max = 0; g_au_us = 0;
-  snprintf(l, sizeof l, "  audio: conversiones=%u us=%llu max_us=%u cache_aciertos=%u cache_entradas=%u cache_bytes=%u\n", n, us, mx, hit, g_snd_n, g_snd_bytes);
+  snprintf(l, sizeof l, "  audio: conversions=%u us=%llu max_us=%u cache_hits=%u cache_entries=%u cache_bytes=%u\n", n, us, mx, hit, g_snd_n, g_snd_bytes);
   out(l);
 }
 
-/* ---- conversion rapida de efectos: U8 mono a `rate` -> S16 estereo a 44100 Hz, interpolacion lineal ---- */
+/* ---- fast effect conversion: U8 mono at `rate` -> S16 stereo at 44100 Hz, linear interpolation ---- */
 volatile int vita_sndfast = 1;
 int vita_snd_fast_frames(int frames, int rate) {
   long long o;

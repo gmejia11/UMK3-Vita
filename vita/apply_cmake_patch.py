@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Inserta 4 cambios minimos en el CMakeLists.txt raiz para el backend 'vita'.
-Idempotente. Hace copia en CMakeLists.txt.orig. Respeta CRLF."""
+"""Inserts 4 minimal changes into the root CMakeLists.txt for the 'vita' backend.
+Idempotent. Keeps a copy in CMakeLists.txt.orig. Respects CRLF."""
 import sys, os, shutil
 root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 path = os.path.join(root, "CMakeLists.txt")
@@ -8,12 +8,12 @@ raw = open(path, "rb").read().decode("utf-8")
 crlf = "\r\n" in raw
 s = raw.replace("\r\n", "\n")
 if "vita/vita.cmake" in s:
-    print("Ya parcheado."); sys.exit(0)
+    print("Already patched."); sys.exit(0)
 
 def sub(old, new, label):
     global s
     if s.count(old) != 1:
-        sys.exit(f"ERROR: ancla '{label}' encontrada {s.count(old)} veces (esperaba 1). No se modifico nada.")
+        sys.exit(f"ERROR: anchor '{label}' found {s.count(old)} times (expected 1). Nothing was changed.")
     s = s.replace(old, new)
 
 sub("project(umk3 C)\n",
@@ -34,4 +34,4 @@ sub("umk3_target_link_platform(umk3-game TRUE)\n",
 shutil.copy(path, path + ".orig")
 out = s.replace("\n", "\r\n") if crlf else s
 open(path, "wb").write(out.encode("utf-8"))
-print("CMakeLists.txt parcheado (original en CMakeLists.txt.orig)")
+print("CMakeLists.txt patched (original in CMakeLists.txt.orig)")

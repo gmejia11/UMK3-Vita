@@ -2465,10 +2465,10 @@ static void fit_view(int ww, int wh, int *vx, int *vy, int *vw, int *vh)
  * Without vsync the swap does not wait, the period measured is about the
  * work itself, and this never sleeps. UMK3_FRAME_DELAY=0 turns it off. */
 #ifdef UMK3_VITA
-/* Port Vita: cada paso de logica (tick) del bucle de abajo es un fotograma ENTERO: clear_frame + GameCodeMain (logica y todo el dibujo
- * de OpenGL) + render_resolve. Si la Vita va retrasada, el bucle hace 2, 3 o mas pasos seguidos y solo el ultimo se ve (el swap es uno
- * por vuelta): los demas dibujaban para nada. port_vita_nodraw = 1 en los pasos que no son el ultimo: rb_nodraw() (el mecanismo del
- * netcode, que ya se salta los glDraw*) devuelve 1 y clear_frame no se ejecuta. vita.cfg: skipdraw=0 lo apaga. */
+/* Vita port: each logic tick of the loop below is a WHOLE frame: clear_frame + GameCodeMain (logic and all the OpenGL
+ * drawing) + render_resolve. When the Vita falls behind, the loop runs 2, 3 or more ticks in a row and only the last is seen (one
+ * swap per pass): the others drew for nothing. port_vita_nodraw = 1 on the ticks that are not the last: rb_nodraw() (the netcode's
+ * mechanism, which already skips the glDraw* calls) returns 1 and clear_frame does not run. vita.cfg: skipdraw=0 turns it off. */
 int port_vita_nodraw;
 extern volatile int vita_skipdraw;
 volatile unsigned vita_ticks_total, vita_ticks_skipped;

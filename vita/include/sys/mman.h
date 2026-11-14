@@ -1,6 +1,6 @@
-/* Shim de sys/mman.h para PS Vita (newlib de vitasdk no lo trae).
-   Solo cubre mmap ANONIMO (memoria nueva a cero), que es lo que hace falta aqui.
-   MAP_FIXED / mmap de ficheros: devuelve MAP_FAILED para que el fallo sea visible. */
+/* sys/mman.h shim for the PS Vita (vitasdk's newlib does not have it).
+   Covers only ANONYMOUS mmap (new zeroed memory), which is what is needed here.
+   MAP_FIXED / file mmap: returns MAP_FAILED so the failure is visible. */
 #ifndef VITA_SYS_MMAN_H
 #define VITA_SYS_MMAN_H
 #include <stddef.h>

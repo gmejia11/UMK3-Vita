@@ -1,13 +1,13 @@
-/* umk3_sgn.h -- Port Vita. Las direcciones de la Vita empiezan en 0x81000000 y, leidas como int32_t, son NEGATIVAS.
- * El codigo original corria con direcciones < 2 GB y comparaba CON SIGNO un campo contra una constante pequena para
- * distinguir "numero" de "puntero" (p. ej. `siguiente > 0x100`); con las direcciones de la Vita eso sale al reves.
- * UMK3_SGN(x) trata los valores del rango de memoria de la aplicacion como positivos enormes (como eran en el original)
- * y deja intactos todos los demas, negativos reales incluidos. Fuera de la Vita es exactamente `(int32_t)(x)`. */
+/* umk3_sgn.h -- Vita port. The Vita's addresses start at 0x81000000 and, read as int32_t, they are NEGATIVE.
+ * The original code ran with addresses below 2 GB and compared a field WITH SIGN against a small constant to
+ * tell a "number" from a "pointer" (e.g. `next > 0x100`); with the Vita's addresses that comes out backwards.
+ * UMK3_SGN(x) treats values in the application's memory range as huge positives (as they were in the original)
+ * and leaves all others alone, real negatives included. Outside the Vita it is exactly `(int32_t)(x)`. */
 #ifndef UMK3_SGN_H
 #define UMK3_SGN_H
 #include <stdint.h>
 #ifdef UMK3_VITA
-extern volatile int vita_sgn;          /* vita.cfg sgn=0 apaga el arreglo (para comparar con el comportamiento antiguo) */
+extern volatile int vita_sgn;          /* vita.cfg sgn=0 turns the fix off (to compare with the old behaviour) */
 static inline int32_t umk3_sgn_f(uint32_t v) { return (vita_sgn && v >= 0x81000000u && v < 0x90000000u) ? 0x7fffffff : (int32_t)v; }
 #define UMK3_SGN(x) umk3_sgn_f((uint32_t)(x))
 #else

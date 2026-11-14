@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
-"""make_pak.py -- junta los archivos de solo lectura de vita/data/res en vita/data/umk3.pak.
+"""make_pak.py -- gathers the read-only files of vita/data/res into vita/data/umk3.pak.
 
-Por que: en la Vita cada apertura de un archivo de res/ cuesta del orden de 100 ms (la carpeta tiene ~1900
-entradas y la tarjeta recorre el directorio en cada apertura) y una pelea abre cientos. Con el paquete, el juego
-(vita/src/vita_fs.c) lee el indice una vez, deja umk3.pak abierto y sirve cada archivo con un solo sceIoPread.
+Why: on the Vita every open of a file in res/ costs on the order of 100 ms (the folder has ~1900
+entries and the card walks the directory on every open) and a fight opens hundreds. With the pack, the game
+(vita/src/vita_fs.c) reads the index once, keeps umk3.pak open and serves each file with a single sceIoPread.
 
-Uso:  python3 vita/make_pak.py [carpeta_data]      (por defecto vita/data)
+Usage:  python3 vita/make_pak.py [data_folder]      (vita/data by default)
 
-Quedan FUERA (siguen sueltos en res/): las partidas y ajustes que el juego escribe (archivos sin extension,
-.sqlite, .tmp) y la musica .mp3, que el decodificador abre por su cuenta.
+Left OUT (still loose in res/): the saves and settings the game writes (files with no extension,
+.sqlite, .tmp) and the .mp3 music, which the decoder opens by itself.
 
-Formato (little endian), el mismo que lee vita_fs.c:
+Format (little endian), the same vita_fs.c reads:
     "UMK3PAK1"  u32 n  u32 names_bytes
-    { u32 name_off, u32 data_off, u32 size } x n     ordenadas por nombre
-    nombres: rutas relativas a ux0:data/umk3/, en minusculas, terminadas en NUL
-    datos
+    { u32 name_off, u32 data_off, u32 size } x n     sorted by name
+    names: paths relative to ux0:data/umk3/, lower case, NUL-terminated
+    data
 """
 import os
 import struct
@@ -28,7 +28,7 @@ def main():
     data = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else os.path.join(here, "data"))
     res = os.path.join(data, "res")
     if not os.path.isdir(res):
-        sys.exit("No existe %s (ejecuta antes vita/build.sh con tu .ipa)" % res)
+        sys.exit("%s does not exist (run vita/build.sh with your .ipa first)" % res)
 
     files = {}
     skipped = 0
@@ -41,11 +41,11 @@ def main():
             rel = os.path.relpath(full, data).replace(os.sep, "/")
             key = rel.lower()
             if key in files:
-                print("aviso: %s y %s solo difieren en mayusculas; se queda el primero" % (files[key], rel))
+                print("warning: %s and %s differ only in case; keeping the first" % (files[key], rel))
                 continue
             files[key] = full
 
-    keys = sorted(files, key=lambda k: k.encode("utf-8"))   # el mismo orden que strcmp en la Vita
+    keys = sorted(files, key=lambda k: k.encode("utf-8"))   # the same order as strcmp on the Vita
     names = bytearray()
     name_off = []
     for k in keys:
@@ -64,7 +64,7 @@ def main():
                 blob = src.read()
             off = f.tell()
             if off + len(blob) >= 1 << 32:
-                sys.exit("El paquete pasaria de 4 GB")
+                sys.exit("The pack would exceed 4 GB")
             f.write(blob)
             entries.append((off, len(blob)))
             pad = (-f.tell()) & 15
@@ -77,7 +77,7 @@ def main():
         f.write(names)
     os.replace(tmp, out)
     total = sum(s for _, s in entries)
-    print("%s: %d archivos, %.1f MB (%d quedan sueltos)" % (out, len(keys), total / 1e6, skipped))
+    print("%s: %d files, %.1f MB (%d left loose)" % (out, len(keys), total / 1e6, skipped))
 
 
 if __name__ == "__main__":

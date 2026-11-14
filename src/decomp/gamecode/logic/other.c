@@ -2540,7 +2540,7 @@ extern uint32_t *P32 character_anitabs2[];  /* 0x0016ee9c */
  * they ask for the rest -- a flip read frame data as an animation and
  * crashed. A boss's missing animation is its stance (entry 0). */
 #ifdef UMK3_VITA
-/* Port Vita: cursor de reserva (todo ceros = "fin del script") y comprobacion de punteros de script. */
+/* Vita port: a spare cursor (all zeros = "end of script") and the script pointer check. */
 static uint32_t vita_end_script[16];
 extern int vita_ptr_ok(uint32_t v);
 extern void vita_bad_cursor(const void *obj, int where, uint32_t v);
@@ -2548,13 +2548,13 @@ extern void vita_bad_cursor(const void *obj, int where, uint32_t v);
 static uint32_t ani_fetch(uint32_t *P32 const *tab, uint32_t c, uint32_t i)
 {
 #ifdef UMK3_VITA
-    /* Port Vita (proteccion y diagnostico): un personaje o una animacion absurdos leerian memoria cualquiera
-     * y dejarian un puntero basura en obj->field40. Se anota en ux0:data/umk3/ani_bad.txt. */
+    /* Vita port (protection and diagnostics): an absurd character or animation would read any memory
+     * and leave a garbage pointer in obj->field40. Noted in ux0:data/umk3/ani_bad.txt (diag=1). */
     {
         extern void vita_ani_bad(unsigned c, unsigned i, unsigned why);
         if (c >= 32) { vita_ani_bad(c, i, 1); return 0; }
         if (i >= 0x400) { extern int vita_ani_keep; vita_ani_bad(c, i, 2); return vita_ani_keep ? i : tab[c][0]; }
-        if (i >= 38) vita_ani_bad(c, i, 0);        /* solo se anota: la fila podria ser mas larga */
+        if (i >= 38) vita_ani_bad(c, i, 0);        /* noted only: the row could be longer */
     }
 #endif
     if (c >= 24) {

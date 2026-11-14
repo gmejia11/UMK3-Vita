@@ -173,9 +173,9 @@ static void tex_add(TexEntry *e)
 int PortTextureQuality;
 
 #ifdef UMK3_VITA
-/* Port Vita: la GPU tiene ~150 MB repartidos entre texturas y buffers y el juego no libera nunca las texturas.
- * Con tex16 en vita.cfg se suben a 16 bits: las opacas a RGB565 (tex16>=1) y las que tienen alfa a RGBA4444
- * (tex16>=2); mitad de memoria. Devuelve 1 si ya subio la imagen. */
+/* Vita port: the GPU has ~150 MB shared between textures and buffers, and the game never frees its textures.
+ * With tex16 in vita.cfg they are uploaded at 16 bits: opaque ones as RGB565 (tex16>=1) and those with alpha as RGBA4444
+ * (tex16>=2); half the memory. Returns 1 if it already uploaded the image. */
 #include <psp2/kernel/processmgr.h>
 extern int vita_tex16;
 static int vita_upload16_impl(const LimeImage *img);
@@ -493,7 +493,7 @@ static void upscale_small(LimeImage *img)
 {
 #ifdef UMK3_VITA
     (void)img;
-    return;   /* Vita: el reescalado por CPU es demasiado lento a 444 MHz */
+    return;   /* Vita: rescaling on the CPU is too slow at 444 MHz */
 #endif
     const int S = 4, w = img->width, h = img->height;
     const int W = w * S, H = h * S;
@@ -985,7 +985,7 @@ void limePortDisplayRotation(void)
 
 /* armv7 0x00065e54 / 0x00065e60 / 0x0006699c. */
 #ifdef UMK3_VITA
-void vita_face_flush(void);             /* las gotas agrupadas se dibujan antes de que cambie el estado */
+void vita_face_flush(void);             /* batched drops are drawn before the state changes */
 void limeEnableDepthWrites(void)  { vita_face_flush(); glDepthMask(GL_TRUE); }
 #else
 void limeEnableDepthWrites(void)  { glDepthMask(GL_TRUE); }
@@ -1077,7 +1077,7 @@ static void quad(TEXTURE *page, float x, float y, float w, float h,
     if (page == NULL)
         return;
 #ifdef UMK3_VITA
-    if (rb_nodraw()) { g_sprites++; return; }   /* un paso cuyo dibujo no se ve: ni glBegin ni estado */
+    if (rb_nodraw()) { g_sprites++; return; }   /* a tick whose picture is not seen: no glBegin, no state */
 #endif
 
     /* armv7 0x00065e7c: depth writes off for the quad and back on after,
@@ -1219,10 +1219,10 @@ static void face_uv(float *uv, float u0, float v0, float du, float dv)
 }
 
 #ifdef UMK3_VITA
-/* Port Vita: cada gota de sangre, charco o la lanza de Scorpion (face_draw) cuesta UNA llamada de dibujo de vitaGL (~40 us de CPU).
- * En un combo salen 1 700-3 200 por fotograma (100-150 ms) y el juego baja a 3-6 fps. Se dibuja solo 1 de cada N: N sale de lo que
- * se vio en el fotograma anterior para que queden como mucho facemax (vita.cfg, 200 por defecto; 0 = sin limite). Las llamadas de
- * estado de OpenGL se hacen igual (solo se omite el dibujo, como ya hace rb_nodraw), asi el estado queda como el juego espera. */
+/* Vita port: each blood drop, puddle or piece of Scorpion's spear (face_draw) costs ONE vitaGL draw call (~40 us of CPU).
+ * A combo makes 1,700-3,200 per frame (100-150 ms) and the game drops to 3-6 fps. With facemax set, only 1 in N is drawn: N comes
+ * from what was seen the frame before, so that at most facemax remain (vita.cfg; 0 = no limit, the default with facebatch=1).
+ * The OpenGL state calls are made all the same (only the draw is skipped, as rb_nodraw does), so the state is what the game expects. */
 extern volatile unsigned vita_swaps;
 extern volatile int vita_face_max;
 volatile unsigned vita_face_total, vita_face_drawn;
@@ -1236,23 +1236,23 @@ static int vita_face_keep(void)
         seen = 0; frame = vita_swaps;
     }
     n = seen++; s = stride;
-    if (n >= 3u * (unsigned)vita_face_max && s == 1) s = 16;       /* un fotograma enorme sin aviso previo: tambien se frena */
+    if (n >= 3u * (unsigned)vita_face_max && s == 1) s = 16;       /* a huge frame with no warning: held back too */
     vita_face_total++;
     if ((n % s) != 0) return 0;
     vita_face_drawn++;
     return 1;
 }
 
-/* Port Vita: AGRUPADO de gotas (vita.cfg facebatch=1, por defecto). Dentro de MaintainParticles (Particles.c) el juego no toca
- * ningun estado de OpenGL entre una gota y la siguiente: solo cambia la textura. Asi que, en vez de una llamada de dibujo por gota,
- * cada gota se guarda en el grupo de su textura (y de su modo de borde, ver lime_port_edge_clamp) y al terminar las particulas cada
- * grupo se dibuja con UN glDrawArrays(GL_TRIANGLES): unas 3 000 gotas pasan a ser ~15 llamadas (12 fotogramas de sangre, 3 charcos,
- * humo). Los grupos se dibujan en el orden en que aparece su primera gota y, dentro de cada grupo, en el orden del juego. Lo unico
- * que cambia es el orden ENTRE texturas distintas donde dos gotas se tapan (prueba de profundidad apagada, mezcla alfa): no se nota
- * en la sangre. facebatch=0 vuelve a una llamada por gota. Los grupos se vacian (vita_face_flush) antes de que el juego vuelva a
- * cambiar estado: en limeEnableDepthWrites, la primera llamada despues del bucle de particulas, y al salir de MaintainParticles. */
+/* Vita port: BATCHED drops (vita.cfg facebatch=1, the default). Inside MaintainParticles (Particles.c) the game changes no
+ * OpenGL state between one drop and the next: only the texture changes. So instead of one draw call per drop, each drop is
+ * kept in the group for its texture (and its edge mode, see lime_port_edge_clamp), and when the particles are done each group
+ * is drawn with ONE glDrawArrays(GL_TRIANGLES): some 3,000 drops become ~15 calls (12 blood frames, 3 puddles, smoke).
+ * Groups are drawn in the order their first drop appeared and, within each group, in the game's order. The only thing that
+ * changes is the order BETWEEN different textures where two drops overlap (depth test off, alpha blending): it does not show
+ * in blood. facebatch=0 goes back to one call per drop. The groups are flushed (vita_face_flush) before the game changes state
+ * again: in limeEnableDepthWrites, the first call after the particle loop, and when MaintainParticles returns. */
 volatile int vita_face_batch = 1;
-volatile unsigned vita_face_calls;                  /* llamadas de dibujo de gotas (con prof=1 en vita_log.txt) */
+volatile unsigned vita_face_calls;                  /* draw calls for drops (in vita_log.txt with prof=1) */
 typedef struct { float x, y, z, u, v; unsigned char c[4]; } face_vtx;
 typedef struct { GLuint tex; int clamp; unsigned n, cap; face_vtx *v; } face_group;
 #define FACE_GROUPS 32
@@ -1289,7 +1289,7 @@ void vita_face_flush(void)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 0x812F);  /* CLAMP_TO_EDGE */
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 0x812F);
         }
-        glDrawArrays(GL_TRIANGLES, 0, (GLsizei)g->n);     /* vitaGL copia los vertices aqui: el buffer se puede reutilizar */
+        glDrawArrays(GL_TRIANGLES, 0, (GLsizei)g->n);     /* vitaGL copies the vertices here: the buffer can be reused */
         vita_face_calls++;
         lime_port_edge_restore(g->clamp);
         glDisable(GL_TEXTURE_2D);
@@ -1299,10 +1299,10 @@ void vita_face_flush(void)
     g_fb_flushing = 0;
 }
 
-/* 1 = la gota quedo en un grupo; 0 = dibujala como siempre (sin memoria, demasiadas texturas, o fuera de MaintainParticles) */
+/* 1 = the drop went into a group; 0 = draw it as always (no memory, too many textures, or outside MaintainParticles) */
 static int face_batch_add(TEXTURE *tex, const float *xyz, const float *uv, const unsigned char *rgba)
 {
-    static const int order[6] = { 0, 1, 2, 2, 1, 3 };   /* la tira de 4 vertices como dos triangulos, con el mismo sentido */
+    static const int order[6] = { 0, 1, 2, 2, 1, 3 };   /* the 4-vertex strip as two triangles, with the same winding */
     face_group *g = NULL;
     int clamp, k;
     if (!g_fb_active || !vita_face_batch) return 0;
@@ -1330,7 +1330,7 @@ static int face_batch_add(TEXTURE *tex, const float *xyz, const float *uv, const
     return 1;
 }
 
-/* -Wl,--wrap=MaintainParticles (vita.cmake): el agrupado solo vale dentro del bucle de particulas */
+/* -Wl,--wrap=MaintainParticles (vita.cmake): batching is only valid inside the particle loop */
 void __real_MaintainParticles(void);
 void __wrap_MaintainParticles(void)
 {
@@ -1344,14 +1344,14 @@ static void face_draw(TEXTURE *tex, const float *xyz, const float *uv,
                       const void *colour, GLenum colour_type)
 {
 #ifdef UMK3_VITA
-    /* Una gota que no se va a dibujar tampoco necesita sus 9 llamadas de estado de OpenGL (textura, arrays, activar/desactivar):
-     * en un combo son miles y costaban ~30 ms por fotograma. La primera gota de cada fotograma siempre se dibuja entera, asi el
-     * estado final es el mismo que dejaba el juego (todas las gotas dejan el mismo estado). */
+    /* A drop that will not be drawn does not need its 9 OpenGL state calls either (texture, arrays, enable/disable):
+     * in a combo there are thousands and they cost ~30 ms per frame. The first drop of each frame is always drawn whole, so the
+     * final state is the same the game left (every drop leaves the same state). */
     if (!vita_face_keep()) return;
     if (colour_type == GL_UNSIGNED_BYTE && !rb_nodraw()
         && face_batch_add(tex, xyz, uv, (const unsigned char *)colour))
         return;
-    vita_face_flush();                  /* lo que estaba agrupado va antes, en su orden */
+    vita_face_flush();                  /* whatever was batched goes first, in its order */
     vita_face_calls++;
 #endif
     glBindTexture(GL_TEXTURE_2D, (GLuint)tex->name);

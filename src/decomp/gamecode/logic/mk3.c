@@ -1671,8 +1671,8 @@ long mk3_update(const long *joy, void **out)
             r = f(t);
 #endif
 #ifdef UMK3_VITA
-            /* Port Vita: un sueno que parece una DIRECCION (0x81000000..0x90000000) dejaria al hilo dormido para siempre
-             * (el personaje se queda congelado). Se anota quien lo puso y se sustituye por 1 tick. */
+            /* Vita port: a sleep that looks like an ADDRESS (0x81000000..0x90000000) would leave the thread asleep forever
+             * (the fighter freezes). Who set it is noted, and it is replaced by 1 tick. */
             if ((uint32_t)t->fieldfc >= 0x81000000u && (uint32_t)t->fieldfc < 0x90000000u) {
                 extern void vita_bad_sleep(void *handler, unsigned token, uint32_t sleep, uint32_t proc);
                 vita_bad_sleep((void *)(uintptr_t)f, (unsigned)port_mk3_running_token, (uint32_t)t->fieldfc, (uint32_t)(uintptr_t)t->proc);
@@ -1789,10 +1789,10 @@ long mk3_update(const long *joy, void **out)
 }
 
 #ifdef UMK3_VITA
-/* ---- Port Vita, DIAGNOSTICO: vuelca los hilos del planificador en ux0:data/umk3/threads.txt ----
- * Se dispara con L+R+Select o solo cuando el cursor de animacion del jugador 1 lleva 150 fotogramas sin cambiar.
- * Para cada hilo: su nivel de pila y, por nivel, el manejador y el token en que esta aparcado; ademas los joybits,
- * los dos jugadores (Plyr y Pp) y Playback (el reproductor de movimientos automaticos). */
+/* ---- Vita port, DIAGNOSTICS: dumps the scheduler's threads to ux0:data/umk3/threads.txt ----
+ * Triggered by L+R+Select, or by itself when player one's animation cursor has not changed for 150 frames (diag=1).
+ * For each thread: its stack depth and, per level, the handler and the token it is parked on; plus the joybits,
+ * the two players (Plyr and Pp) and Playback (the automatic-move player). */
 void vita_dump_threads(unsigned frame, const char *why)
 {
     FILE      *f = fopen("ux0:data/umk3/threads.txt", "a");
@@ -1801,8 +1801,8 @@ void vita_dump_threads(unsigned frame, const char *why)
 
     if (!f)
         return;
-    fprintf(f, "=== fotograma %u: %s\n", frame, why);
-    fprintf(f, "ancla(vita_dump_threads)=0x%08x\n", (unsigned)(uintptr_t)&vita_dump_threads);
+    fprintf(f, "=== frame %u: %s\n", frame, why);
+    fprintf(f, "anchor(vita_dump_threads)=0x%08x\n", (unsigned)(uintptr_t)&vita_dump_threads);
     fprintf(f, "joybits jb0=%08x jb1=%08x\n", (unsigned)*(long *)(void *)(G_BYTES + 0x00),
             (unsigned)*(long *)(void *)(G_BYTES + 0x04));
     for (i = 0; i < 2; i++) {
@@ -1824,14 +1824,14 @@ void vita_dump_threads(unsigned frame, const char *why)
     for (t = TList; t != NULL && n < 64; t = t->next, n++) {
         unsigned lv;
 
-        fprintf(f, "hilo %p proc=%08x niveles=%u dormido=%d:", (void *)t, (unsigned)(uintptr_t)t->proc,
+        fprintf(f, "thread %p proc=%08x levels=%u asleep=%d:", (void *)t, (unsigned)(uintptr_t)t->proc,
                 (unsigned)t->frame + 1u, (int)t->fieldfc);
         for (lv = 0; lv <= (unsigned)t->frame && lv < 8; lv++)
             fprintf(f, "  [%u] handler=0x%08x token=0x%x", lv, (unsigned)(uintptr_t)mk3_frame(t, lv)[1],
                     (unsigned)*mk3_frame(t, lv + 1));
         fprintf(f, "\n");
     }
-    fprintf(f, "(%d hilos)\n", n);
+    fprintf(f, "(%d threads)\n", n);
     fclose(f);
 }
 #endif

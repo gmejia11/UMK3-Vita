@@ -1,6 +1,6 @@
-/* vita_par.c -- grupo de hilos para lime_par_for (decodificacion de texturas) en la Vita.
- * Se activa con par=1 en ux0:data/umk3/vita.cfg; apagado, todo va por la implementacion original de par.c.
- * El hilo que llama tambien trabaja (con NW=2 trabajadores son 3 hilos, los 3 nucleos que da la Vita a una app). */
+/* vita_par.c -- a thread pool for lime_par_for (texture decoding) on the Vita.
+ * Enabled with par=1 in ux0:data/umk3/vita.cfg; off, everything goes through par.c's own implementation.
+ * The calling thread works too (with NW=2 workers that is 3 threads, the 3 cores the Vita gives an app). */
 #include <psp2/kernel/threadmgr.h>
 
 typedef void (*par_fn)(void *ctx, int lo, int hi);
@@ -16,7 +16,7 @@ static par_fn g_fn;
 static void *g_ctx;
 static int g_n, g_chunk, g_chunks;
 static volatile int g_next;
-static int g_nw = -1;                 /* -1 = sin arrancar */
+static int g_nw = -1;                 /* -1 = not started */
 
 static void run_chunks(void) {
   for (;;) {
@@ -33,7 +33,7 @@ static int worker(SceSize args, void *argp) {
   for (;;) {
     sceKernelWaitSema(g_go, 1, 0);
     run_chunks();
-    sceKernelSignalSema(g_ack, 1);    /* cada trabajador avisa al terminar: nadie queda "a medias" cuando acaba el trabajo */
+    sceKernelSignalSema(g_ack, 1);    /* each worker signals when done: nobody is left "halfway" when the job ends */
   }
   return 0;
 }
@@ -63,7 +63,7 @@ void __wrap_lime_par_for(int n, par_fn fn, void *ctx) {
   if (n <= 0) return;
   if (g_nw < 0) start();
   if (g_nw == 0 || n < 2) { fn(ctx, 0, n); return; }
-  int chunks = (g_nw + 1) * 4;                       /* cuatro trozos por hilo: uno lento no frena a los demas */
+  int chunks = (g_nw + 1) * 4;                       /* four pieces per thread: a slow one does not hold the others back */
   if (chunks > n) chunks = n;
   g_fn = fn; g_ctx = ctx; g_n = n;
   g_chunk = (n + chunks - 1) / chunks;
@@ -71,7 +71,7 @@ void __wrap_lime_par_for(int n, par_fn fn, void *ctx) {
   g_next = 0;
   __sync_synchronize();
   for (int i = 0; i < g_nw; i++) sceKernelSignalSema(g_go, 1);
-  run_chunks();                                      /* el llamador tambien trabaja */
+  run_chunks();                                      /* the caller works too */
   for (int i = 0; i < g_nw; i++) sceKernelWaitSema(g_ack, 1, 0);
   __sync_synchronize();
 }

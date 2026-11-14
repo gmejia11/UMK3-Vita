@@ -1148,8 +1148,8 @@ long t_cc_hi_punch(MK3THREAD *thread)
         return -3;
 
 #ifdef UMK3_VITA
-    /* Port Vita (opcional, vita.cfg chain=1): sin el limite de la cadena de punos del arcade (6/5 punos altos/bajos; 4/3 contra la maquina),
-     * que a partir de ahi separa a los luchadores (t_separate_us) en vez de seguir el combo. chain=0 = arcade. */
+    /* Vita port (optional, vita.cfg chain=1): without the arcade's punch-chain limit (6/5 high/low punches; 4/3 against the machine),
+     * past which the fighters are pushed apart (t_separate_us) instead of the combo going on. chain=0 = arcade. */
     { extern volatile int vita_chain; obj->field30 = vita_chain ? 0x63 : 0x6; obj->field34 = vita_chain ? 0x63 : 0x4; }
 #else
     obj->field30 = 0x6;
@@ -1176,8 +1176,8 @@ long t_cc_lo_punch(MK3THREAD *thread)
         return -3;
 
 #ifdef UMK3_VITA
-    /* Port Vita (opcional, vita.cfg chain=1): sin el limite de la cadena de punos del arcade (6/5 punos altos/bajos; 4/3 contra la maquina),
-     * que a partir de ahi separa a los luchadores (t_separate_us) en vez de seguir el combo. chain=0 = arcade. */
+    /* Vita port (optional, vita.cfg chain=1): without the arcade's punch-chain limit (6/5 high/low punches; 4/3 against the machine),
+     * past which the fighters are pushed apart (t_separate_us) instead of the combo going on. chain=0 = arcade. */
     { extern volatile int vita_chain; obj->field30 = vita_chain ? 0x63 : 0x5; obj->field34 = vita_chain ? 0x63 : 0x3; }
 #else
     obj->field30 = 0x5;

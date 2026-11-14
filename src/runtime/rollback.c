@@ -448,7 +448,7 @@ void rb_net(long type, const void *data, long len)
 int rb_active(void) { return g_on; }
 int rb_quiet(void)  { return g_quiet; }
 #ifdef UMK3_VITA
-extern int port_vita_nodraw;      /* game_main.c: un paso de logica cuyo dibujo no se va a ver */
+extern int port_vita_nodraw;      /* game_main.c: a logic tick whose picture will not be seen */
 int rb_nodraw(void) { return g_nodraw || port_vita_nodraw; }
 #else
 int rb_nodraw(void) { return g_nodraw; }

@@ -159,10 +159,10 @@ int plat_audio_play_at(const unsigned char *pcm, int frames, int rate, float gai
     }
 
 #ifdef UMK3_VITA
-    /* Port Vita: CADA vez que suena un efecto este codigo lo convertia entero (U8 mono -> S16 estereo a 44100 Hz) en el hilo del juego: un
-     * golpe lanza varios sonidos y cada conversion cuesta decenas de ms en la Vita (los tirones de 72/110/145/220 ms en los combos son
-     * multiplos de ~36 ms). Ahora la primera vez se convierte y se guarda (hasta sndcache_mb MB, vita.cfg sndcache=0 lo apaga); las
-     * siguientes solo crean el chunk sobre el buffer ya convertido. */
+    /* Vita port: EVERY time an effect played, this code converted it whole (U8 mono -> S16 stereo at 44100 Hz) on the game's thread: a
+     * hit fires several sounds and each conversion costs tens of ms on the Vita (the 72/110/145/220 ms hitches in combos are
+     * multiples of ~36 ms). Now it is converted and kept the first time (up to sndcache_mb MB; vita.cfg sndcache=0 turns it off); later
+     * plays only create the chunk over the buffer already converted. */
     {
         extern int vita_snd_get(const void *pcm, int frames, int rate, void **buf, unsigned *len);
         void *cbuf = NULL; unsigned clen = 0;
@@ -176,7 +176,7 @@ int plat_audio_play_at(const unsigned char *pcm, int frames, int rate, float gai
                 Mix_Volume(i, (int)(gain * MIX_MAX_VOLUME + 0.5f));
                 if (Mix_PlayChannel(i, chunk, 0) >= 0) {
                     g_voice[i].chunk = chunk;
-                    g_voice[i].buffer = NULL;       /* el buffer es de la cache */
+                    g_voice[i].buffer = NULL;       /* the buffer belongs to the cache */
                     g_voice[i].gain = gain;
                     return 1;
                 }
@@ -185,8 +185,9 @@ int plat_audio_play_at(const unsigned char *pcm, int frames, int rate, float gai
         }
     }
     extern unsigned long long vita_au_begin(void);
+    extern void vita_au_end(unsigned long long t0);
     unsigned long long vita_t0 = vita_au_begin();
-    {   /* Conversion propia (interpolacion lineal, U8 mono -> S16 estereo a MIX_RATE): SDL_ConvertAudio tardaba ~40 ms por efecto. */
+    {   /* Our own conversion (linear interpolation, U8 mono -> S16 stereo at MIX_RATE): SDL_ConvertAudio took ~40 ms per effect. */
         extern volatile int vita_sndfast;
         extern int  vita_snd_fast_frames(int frames, int rate);
         extern void vita_snd_fast_convert(const unsigned char *pcm, int frames, int rate, short *dst, int dst_frames);

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Extrae de un .ipa de UMK3 lo que necesita el build de Vita:
-     work/UMK3.armv7     binario armv7 (rebanada del Mach-O universal)
-     data/res/...        recursos del juego
-     data/*.x            tablas sueltas del bundle (frames.x, moves_data.x)
-Uso: python3 vita/extract_ipa.py UMK3.ipa"""
+"""Extracts from a UMK3 .ipa what the Vita build needs:
+     work/UMK3.armv7     the armv7 binary (the slice of the universal Mach-O)
+     data/res/...        the game's resources
+     data/*.x            the bundle's loose tables (frames.x, moves_data.x)
+Usage: python3 vita/extract_ipa.py UMK3.ipa"""
 import os, sys, struct, zipfile, plistlib
 
 EXPECT_UUID = "90d6f56a18e2303f8f2053b02a42742e"
@@ -16,12 +16,12 @@ def thin_armv7(data):
             ct, st, off, size, _ = struct.unpack(">5I", data[8 + 20 * i: 28 + 20 * i])
             if ct == CPU_ARM and st == SUB_V7:
                 return data[off:off + size]
-        sys.exit("ERROR: el binario universal no trae rebanada armv7")
-    if data[:4] == b"\xce\xfa\xed\xfe":                       # ya es 32-bit little-endian
+        sys.exit("ERROR: the universal binary has no armv7 slice")
+    if data[:4] == b"\xce\xfa\xed\xfe":                       # already 32-bit little-endian
         ct, st = struct.unpack("<II", data[4:12])
         if ct == CPU_ARM and st == SUB_V7:
             return data
-    sys.exit("ERROR: formato de binario no reconocido")
+    sys.exit("ERROR: unrecognised binary format")
 
 def uuid_of(thin):
     ncmds = struct.unpack("<I", thin[16:20])[0]
@@ -43,7 +43,7 @@ def main():
     apps = sorted({n.split("/")[1] for n in z.namelist()
                    if n.startswith("Payload/") and n.split("/")[1].endswith(".app")})
     if not apps:
-        sys.exit("ERROR: no hay Payload/*.app en el .ipa")
+        sys.exit("ERROR: no Payload/*.app in the .ipa")
     pre = f"Payload/{apps[0]}/"
     exe = "UMK3"
     try:
@@ -55,8 +55,8 @@ def main():
     out_bin = os.path.join(work, "UMK3.armv7")
     open(out_bin, "wb").write(thin)
     u = uuid_of(thin)
-    print(f"binario armv7: {out_bin} ({len(thin)} bytes)")
-    print(f"UUID: {u}  ->", "OK, version 1.2.59" if u == EXPECT_UUID else "DISTINTO del esperado (1.2.59)!")
+    print(f"armv7 binary: {out_bin} ({len(thin)} bytes)")
+    print(f"UUID: {u}  ->", "OK, version 1.2.59" if u == EXPECT_UUID else "DIFFERENT from the expected one (1.2.59)!")
 
     n = 0
     for name in z.namelist():
@@ -69,7 +69,7 @@ def main():
             with open(dest, "wb") as f:
                 f.write(z.read(name))
             n += 1
-    print(f"{n} archivos de datos -> {data_dir}")
-    print(f"\nSiguiente: ./vita/build.sh {out_bin}")
+    print(f"{n} data files -> {data_dir}")
+    print(f"\nNext: ./vita/build.sh {out_bin}")
 
 main()
