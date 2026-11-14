@@ -17,6 +17,15 @@ This repository is a fork of **[MaryNCRT's Ultimate Mortal Kombat 3 iOS decompil
 > [!IMPORTANT]
 > **No game data is distributed here.** You need your own legally obtained copy of *Ultimate Mortal Kombat 3* for iOS (**v1.2.59**, `.ipa`). The build extracts what it needs from it; the VPK you build contains data from your copy and must not be shared.
 
+<p align="center">
+  <img src="docs/img/vita/fight.jpg" alt="A fight on the PS Vita" width="49%">
+  <img src="docs/img/vita/select.jpg" alt="Select your fighter" width="49%">
+  <img src="docs/img/vita/menu.jpg" alt="The play menu" width="32%">
+  <img src="docs/img/vita/livearea.jpg" alt="The LiveArea" width="32%">
+  <img src="docs/img/vita/loading.jpg" alt="Loading" width="32%">
+</p>
+<p align="center"><sub>Screenshots taken on a PS Vita.</sub></p>
+
 ### Status
 
 - Plays on a real PS Vita (vitaGL, SDL2 audio). Fight loads use an asset pack (`umk3.pak`) built from your `.ipa`.
