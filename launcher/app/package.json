@@ -1,0 +1,88 @@
+{
+  "name": "umk3-launcher",
+  "version": "0.1.11-beta",
+  "description": "UMK3 PC port launcher - arcade shell (Electron)",
+  "main": "main.js",
+  "author": "UMK3 Recomp",
+  "license": "GPL-2.0-or-later",
+  "scripts": {
+    "ui": "node scripts/build-ui.js",
+    "start": "npm run ui && electron .",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win zip portable --x64",
+    "dist:linux": "electron-builder --linux tar.gz AppImage --x64",
+    "test": "node --test test/*.js"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-static": "^4.0.0",
+    "@sveltejs/kit": "^3.1.0",
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8",
+    "svelte": "^5.57.2",
+    "three": "^0.170.0",
+    "vite": "^8.3.5"
+  },
+  "build": {
+    "appId": "com.umk3recomp.launcher",
+    "productName": "UMK3 LAUNCHER",
+    "executableName": "UMK3-Launcher",
+    "files": [
+      "main.js",
+      "cli.js",
+      "preload.js",
+      "lib/**",
+      "renderer/**",
+      "build/icon.ico"
+    ],
+    "extraResources": [
+      {
+        "from": "../../src",
+        "to": "src"
+      },
+      {
+        "from": "../../tools/build",
+        "to": "tools/build"
+      },
+      {
+        "from": "../aditional textures",
+        "to": "launcher/aditional textures"
+      }
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        "zip",
+        "portable"
+      ],
+      "icon": "build/icon.ico",
+      "signAndEditExecutable": false
+    },
+    "portable": {
+      "artifactName": "UMK3-Launcher-Windows.exe"
+    },
+    "linux": {
+      "target": [
+        "tar.gz",
+        "AppImage"
+      ],
+      "category": "Game",
+      "extraResources": [
+        {
+          "from": "../../tools/eos",
+          "to": "TOOLS/eos",
+          "filter": [
+            "SDK/Include/**",
+            "SDK/Bin/libEOSSDK-Linux-Shipping.so",
+            "eos.ini",
+            "ThirdPartyNotices/**"
+          ]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "beforePack": "scripts/build-ui.js"
+  }
+}

@@ -1,0 +1,500 @@
+ULTIMATE MORTAL KOMBAT 3 - PORT DE PC - 0.1.9 BETA (VULKAN Y DIRECTX 12)
+========================================================================
+
+Port nativo para Windows de la version de iOS (1.2.59), hecho por
+descompilacion. Esta carpeta NO contiene nada del juego: ni graficos, ni
+sonidos, ni el ejecutable. Todo sale de TU propio .ipa al compilar.
+
+REQUISITOS
+- Windows 10 u 11 (64 bits).
+- Tu propio .ipa de Ultimate Mortal Kombat 3 1.2.59 para iPhone
+  (el ejecutable dentro debe tener uuid 90d6f56a..., sin cifrar).
+  La version de iPad 1.2.56 NO sirve.
+- Internet la primera vez (descarga el compilador, unos 190 MB).
+- Unos 1,5 GB libres.
+
+COMO JUGAR
+1. Abre UMK3-Launcher.exe (el launcher nuevo de 0.0.6). Se maneja con el
+   raton o con las flechas y Enter; F11 o el boton de arriba lo pone en
+   pantalla completa, y la ventana se puede agrandar libremente.
+2. En "COMPILAR TU .IPA" elige tu .ipa y pulsa Compilar.
+   El launcher muestra el progreso mientras:
+     - descarga llvm-mingw 20260616 (GitHub, SHA-256 comprobado) y
+       Python 3.12.10 (python.org) en la carpeta toolchain\
+     - comprueba que tu binario es el correcto
+     - extrae las tablas del juego de tu binario
+     - compila umk3-game.exe
+     - copia la carpeta res\ desde tu .ipa
+   Tarda menos de un minuto despues de la descarga.
+3. En "GRAFICOS" elige la resolucion de ventana, la resolucion 3D (a la
+   que el juego dibuja de verdad; 480 x 320 es la del iPhone), el modo de
+   pantalla (ventana, pantalla completa o ventana sin bordes), la
+   relacion de aspecto (3:2, la original), el antialiasing (hasta x16),
+   si quieres ocultar el joystick y los botones en pantalla y, si
+   quieres, un marco (una imagen tuya) para los lados en pantalla
+   completa, y la calidad de texturas: IPHONE (la original), IPAD
+   (letras y botones del iPad, texturas sin comprimir donde existen y
+   luchadores a 1024 en la seleccion) o SIN LIMITE (ademas agranda 4x
+   el HUD pequeno). Se guardan solos en umk3.ini.
+   En "CONTROLES", categoria JUGADOR 1, eliges el esquema de 6 o de 5
+   botones (el juego empieza con el que elijas) y cambias las teclas de
+   cada uno por separado: haz clic en una accion y pulsa la tecla nueva
+   (Esc cancela). Restablecer vuelve a las de siempre. En la categoria
+   DEBUG, las teclas y atajos del modo debug (abrir el menu, paginas,
+   ganar/perder...).
+4. En "JUGAR" elige el idioma del juego, marca, si quieres, "Modo debug"
+   y "Saltar las intros" (sin los logos del inicio) y pulsa el boton
+   grande JUGAR.
+
+El boton de arriba a la derecha (English / Espanol) cambia el idioma del
+launcher; tambien se guarda en umk3.ini.
+
+El juego solo usa esta carpeta. Puedes borrar toolchain\ y build-game\
+despues de compilar (se vuelven a descargar si compilas otra vez).
+
+CONTROLES
+- Raton: es el dedo (menus y controles tactiles en pantalla).
+- En la pelea (teclado):
+    W / flecha arriba ......... saltar
+    S / flecha abajo .......... agacharse
+    A / flecha izquierda ...... izquierda
+    D / flecha derecha ........ derecha
+    (diagonales: dos teclas a la vez, p. ej. W+D salta hacia delante)
+    U  (o 7 del num.) ......... puñetazo alto  (HP)
+    I  (o 8 del num.) ......... puñetazo bajo  (LP)
+    O  (o 9 del num.) ......... bloqueo        (BL)
+    J  (o 4 del num.) ......... patada alta    (HK)
+    K  (o 5 del num.) ......... patada baja    (LK)
+    L  (o 6 del num.) ......... correr         (RUN)
+    Esquema de 5 botones: U puño (P), O bloqueo (B), J patada (K),
+    L correr (R), H especial (S).
+    P ......................... menu de pausa (otra vez: continuar)
+    M ......................... lista de movimientos / combos
+- Esc ya NO cierra el juego (cierralo con la X de la ventana).
+
+- Modo debug: marca "Modo debug" en JUGAR. Teclas por defecto (todas se
+  cambian en CONTROLES):
+    F2         menu debug, en 4 paginas: LUCHADORES (luchadores, paleta
+               1 o 2 de cada uno, escenario), DURANTE LA PELEA (ganar o
+               perder round o pelea, finishers, jefes del Arcade), MENUS
+               (cualquier pantalla) y OPCIONES. Q / E cambian de pagina;
+               tambien se maneja con el raton (clic en el titulo cambia
+               de pagina; en una fila con valor, mitad izquierda baja y
+               mitad derecha sube).
+    F3         linea de info (tarea, pantalla, luchadores, rounds)
+    F6 / F7    pantalla anterior / siguiente      F8  menu principal
+    F9 / F10   terminar el round (KO jugador 2 / jugador 1)
+    F11 / F12  ganar / perder la pelea entera (F11 la salta)
+  F3 y F6-F12 son las teclas directas; el menu F2 las apaga.
+
+NUEVO EN 0.0.9
+- Mando: Xbox (XInput), PlayStation 4 y 5, Switch Pro y otros mandos USB
+  (DirectInput). En CONTROLES > JUGADOR 1 se elige el dispositivo de
+  entrada: solo teclado, el primer mando que se conecte, el de Xbox o un
+  mando concreto (aparece en la lista al pulsar uno de sus botones). El
+  teclado sigue funcionando. Botones por posicion: izquierda puno alto,
+  abajo puno bajo, arriba patada alta, derecha patada baja (con 5 botones:
+  los dos de la izquierda puno y los dos de la derecha patada), R1
+  bloqueo, L1 y L2 correr, R2 especial, OPTIONS/START pausa, SHARE/BACK
+  combos. Los menus se siguen usando con el raton.
+- Seleccion de personaje: "< COLOR 1 >" bajo cada luchador para elegir la
+  paleta 1 o 2; el modelo 3D, el retrato del VS y la pelea la siguen. Se
+  guarda (save\palette.txt), y un Arcade continuado mas tarde usa la
+  paleta con la que empezo.
+- Sin retraso en los controles; los movimientos de mantener y soltar
+  (el sai de Mileena, la patada bicicleta de Liu Kang) funcionan.
+- Si el juego falla, guarda logs\crash-*.log y lo muestra en un aviso.
+- Pantalla de carga: los iconos del Kombat Kode en una sola fila, con el
+  nombre del kode.
+- Menu debug, pagina TOOLS: hitboxes, velocidad de la pelea (10% a 400%)
+  y save states (guardar y cargar el momento exacto, 4 ranuras en
+  memoria). Una pelea del debug ya no deja sus luchadores, escenario ni
+  paletas para los demas modos.
+- Launcher: botones mas pequenos.
+
+NUEVO EN 0.1.9 BETA (VULKAN Y DIRECTX 12)
+- RENDERIZADOR: OPENGL, VULKAN o DIRECTX 12 (solo Windows), en GRAFICOS >
+  VIDEO del launcher o en el menu de opciones del juego (Esc > GRAFICOS;
+  desde el juego se aplica al reiniciar). Vulkan y DirectX 12 son nuevos:
+  si no arrancan, el juego dibuja con OpenGL y lo dice en su registro.
+- IDIOMA en el menu de opciones del juego (Esc > GRAFICOS > INTERFAZ):
+  cambia textos y menus al momento, sin reiniciar.
+- La lista de movimientos: la pagina de fatalities mostraba los botones
+  de la pagina anterior (los especiales). Arreglado.
+- MODS: una textura del mod ahora tambien se ve con calidad IPHONE (el
+  juego usa ahi las copias _LOW y _LITE); al reemplazar una textura el
+  launcher crea esas copias solo (o las pones tu); cualquier formato de
+  imagen (PNG, JPG, WEBP, BMP, GIF, TGA...); portadas de cualquier imagen.
+- VISOR: pantalla completa, solo el modelo, opciones a la derecha,
+  ACTUALIZAR CARPETAS, texturas por personaje, calidad NORMAL / LOW /
+  LITE, velocidad y bucle de las animaciones, el sombrero de Kung Lao
+  (ACCESORIOS), y Reptile y Noob Saibot con su propia textura.
+- El texto del launcher es mas pequeno (el menu de inicio no).
+- COMPILAR SIN LA VENTANA: build-game.cmd <tu .ipa> (Windows) o
+  ./build-game.sh <tu .ipa> (Linux).
+- LINUX (SIN PROBAR TODAVIA): el enlace ya no falla con "libGL.so.1 is
+  incompatible" (Fedora y parecidas), el juego lee umk3.ini y su carpeta
+  res junto al ejecutable, y no hace falta ningun paquete -dev. Guia en
+  README-linux.md.
+- Internet: eos.ini.example explica como poner tu propio eos.ini.
+
+NUEVO EN 0.1.8 BETA (MODS)
+- MODS en el menu del launcher, con cuatro paginas:
+  - GESTOR DE MODS: un mod es una carpeta en mods\. Cada archivo con el
+    nombre de uno del juego lo reemplaza (texturas: un PNG con el nombre
+    de la textura). Prioridad (subir/bajar), activar/desactivar,
+    categorias (texturas, audio, musica, modelos), portada y VER EN EL
+    VISOR.
+  - VISOR DE MODELOS: luchadores con sus animaciones, escenarios, otros
+    modelos y texturas, vistos con el juego original, con los mods
+    activados o con un solo mod. Exporta las texturas de lo que ves y el
+    rig (FBX) para Blender. REEMPLAZAR ANIMACION y REEMPLAZAR MODELO
+    traen de vuelta un FBX hecho sobre ese rig y lo guardan en un mod; se
+    ve al momento.
+  - EDITOR DE PERSONAJES: los golpes de cada luchador (dano, dano en
+    bloqueo, hitbox editable a mano o arrastrando la caja), sus ataques
+    especiales y remates (marca los que faltan: Noob Saibot, Motaro y
+    Shao Kahn no tienen especiales propios), sus datos, los textos del
+    juego (nombres, lista de movimientos) y sus texturas (traje 1 y 2,
+    retratos, VERSUS) para reemplazar con un PNG. Los numeros van al
+    data.ini del mod, que el juego aplica al iniciar.
+  - EXPORTAR: FBX, USD (USDA, USDC, USDZ) u OBJ con texturas PNG, cada
+    animacion o todas, en T-pose corregida o en la pose original.
+- Arreglado: elegir a Motaro o Shao Kahn como LUCHADOR 1/2 en el menu
+  debug cerraba el juego (al pulsar botones o saltar). Ahora se pueden
+  jugar; solo tienen los golpes que el juego les da.
+- LINUX (SIN PROBAR): el juego ya no falla con "GL/gl.h not found" (el
+  launcher trae esas cabeceras) y el launcher de Linux se actualiza con
+  el .tar.gz. Quien tenga la 0.1.7 en Linux tiene que bajar esta a mano
+  una vez.
+
+NUEVO EN 0.1.7 BETA
+- Launcher nuevo, con el aspecto del menu principal de la consola: los
+  anillos de marmol con borde plateado, el menu en curva con la esfera
+  de cristal y su M girando, el logo arriba, la descripcion de cada
+  opcion en su caja y la barra de botones abajo. Las secciones se abren
+  a pantalla completa. Si pones una captura en
+  aditional textures\image.png sale dentro del anillo pequeno.
+- Hasta compilar por primera vez el menu solo muestra COMPILAR TU .IPA.
+- Arreglado en 64 bits: el juego se cerraba al elegir un escenario en el
+  menu debug y al activar las hitboxes.
+- LINUX (SIN PROBAR): la descarga del compilador (Zig) ya no se corta al
+  momento con "EXIT CODE: -1": espera mas a la conexion, reintenta por
+  IPv4 y, si falla, dice por que.
+
+NUEVO EN 0.1.6 BETA (ONLINE POR INTERNET)
+- ONLINE por internet con Epic Online Services: sin abrir puertos, con
+  el mismo codigo de jugador. El SDK de EOS viene en tools\eos y el
+  launcher lo pone junto al juego al compilar (solo en 64 bits; el de
+  32 bits sigue jugando online en la red local).
+- Rollback en las peleas online: cada juego corre la pelea con los
+  controles de los dos y corrige al llegar los del otro, asi la pelea no
+  espera a la red. Cada jugador elige el color de su luchador.
+- Menu debug (F2) nuevo, con la forma del menu de Esc: PELEA
+  (luchadores, ronda, Arcade, trucos), MENUS y OPCIONES (opciones,
+  herramientas y save states), listas que se abren con Enter o clic.
+  Nuevas opciones: vida infinita (jugador 1, 2 o ambos), congelar el
+  reloj, fotogramas por segundo y datos del online. En una pelea online
+  no hay menu debug.
+- La rueda del raton mueve el cursor en el menu debug y en el de Esc.
+- Los avisos (OK / VOLVER) se manejan con el mando: izquierda y derecha
+  eligen, A / Cruz o START aceptan, B / Circulo vuelve.
+- Arreglado en 64 bits: algunas partidas dibujaban todas las texturas
+  en blanco.
+- Arreglado: los fatalities de Mileena (el de los clavos y el del beso).
+- LINUX (SIN PROBAR): paquete UMK3-PC-0.1.6-beta-linux-x64.tar.gz con
+  el launcher para Linux. Compila el juego con SDL2 (hace falta tener
+  libSDL2 y OpenGL instalados), con los avisos estilo iPhone y los
+  iconos de teclado y mando. Nadie lo ha probado todavia en un Linux
+  real; si falla, reportalo en GitHub (Issues).
+
+NUEVO EN 0.1.5 ALPHA (LA ACTUALIZACION ONLINE)
+- JUGAR > ONLINE: tu perfil (icono y nombre) y TU CODIGO, el id de tu
+  perfil. FIND MATCH y escribe el codigo del otro jugador (Ctrl+V pega,
+  Enter busca); su juego tiene que estar en su pantalla ONLINE. Luego la
+  seleccion de luchador, la VS con los dos nombres, la pelea con el icono
+  de cada uno en su lado y al final REVANCHA, otro luchador o salir.
+- De momento solo entre juegos del mismo PC o de la red local; por
+  internet vendra con Epic Online Services.
+- En la pelea online no hay menu de depuracion.
+- El juego ya no se pausa al perder el foco de la ventana.
+- Arreglado en 64 bits: los focos con el dragon de la pantalla VS
+  parpadeaban y el letrero FATALITY salia roto.
+- Dos juegos en el mismo PC: abre el segundo con la variable
+  UMK3_PROFILES=profiles-2.ini para que tenga otro perfil (otro codigo).
+
+NUEVO EN 0.1.4 BETA
+- VERSION DE 64 BITS: en el launcher, WINDOWS elige 32 BITS
+  (umk3-game.exe) o 64 BITS (umk3-game64.exe). Se pueden tener las dos;
+  con las dos compiladas, VERSION A ABRIR elige cual abre JUGAR.
+- Ganar en Arcade ya no cierra el juego (con cualquier luchador).
+- Sub-Zero clasico ya no desaparece en su combo del codo.
+- Editor de controles tactiles sin limites: mover, tamano y opacidad de
+  cada boton y del joystick; RESET los devuelve.
+- El menu de pausa llega al borde derecho en 16:9 y 21:9.
+- UMK3 LAUNCHER con su icono y el logo; el juego tiene icono.
+
+NUEVO EN 0.1.3 BETA (la primera beta)
+- MODO ENTRENAMIENTO (JUGAR, bajo DUELO): eliges tu luchador y el rival; la
+  vida se rellena al llegar a cero, el reloj se para y el rival no se mueve.
+- START pulsa OK en la seleccion de personaje; equis solo elige.
+- LOS MENUS DEL JUEGO CON EL MANDO O EL TECLADO: la cruceta, la palanca
+  izquierda o las flechas mueven; la opcion se pone en amarillo; equis / A
+  o Enter eligen (al soltar), circulo / B o Retroceso vuelven. En VS los
+  dos jugadores eligen a la vez. La palanca derecha cambia el color del
+  luchador. Cualquier boton salta la intro de la pelea.
+- Sin controles en pantalla: ACEPTAR y ATRAS abajo con los botones de tu
+  mando, y CONFIG. BOTONES (Opciones y pausa) abre el teclado y el mando en
+  el marco del juego.
+- Jugador 2: teclas de pausa (/), lista de movimientos (*) y aceptar (1)
+  del teclado numerico; su lista de movimientos muestra su luchador.
+- Imagenes de teclas y botones (Xbox, PS5, PS4, Nintendo) en el launcher y
+  los menus: Free Input Prompts de Julio Cacko (CC0). Iconos por jugador.
+- Menu de ajustes con panel lateral, listas desplegables, eleccion de
+  monitor y un boton del mando para abrirlo (HOME).
+- Launcher al estilo de la version de consola; se cierra al abrir el juego.
+- Perfil: la paleta de colores completa y degradado personalizado.
+- Los colores elegidos solo se guardan en VS; en los demas modos los
+  rivales salen con un color al azar (menos Motaro y Shao Kahn).
+
+NUEVO EN 0.1.2
+- MENU DE AJUSTES DENTRO DEL JUEGO: pulsa Esc. Graficos (ventana o
+  pantalla completa, resolucion, resolucion 3D, antialiasing, texturas,
+  aspecto, interfaz, controles en pantalla) sin reiniciar el juego;
+  teclado y mando de los dos jugadores; SALIR DEL JUEGO. Todo se guarda
+  en umk3.ini y el launcher lo muestra.
+- PERFIL DE JUGADOR: nombre, ID unico de tu instalacion e icono (el arte
+  de un luchador sobre un degradado claro u oscuro del color que elijas).
+  Se edita en el launcher (PERFIL) y en el juego (Esc > PERFIL).
+- Pantallas de continuar en 16:9 y 21:9 con arte nuevo hecho para ellas.
+- Un sonido ya no se repite encima de si mismo (gritos de fatalities).
+- Los controles en pantalla siguen el cambio de aspecto o de interfaz.
+- El recuadro rojo al pulsar es mas fino.
+
+NUEVO EN 0.1.1
+- CONTROLES: pestanas JUGADOR 1 / JUGADOR 2 en TECLADO y MANDO. El
+  jugador 2 tiene sus propias teclas (6 y 5 botones) y su propio mando
+  para JUGAR > DUELO.
+- DUELO sale con cualquier tamano de interfaz.
+- Con la interfaz de iPad en 16:9 y 21:9: los luchadores de la
+  seleccion vuelven a su sitio, los letreros de las torres quedan
+  centrados y el marco de JUGADORES tambien.
+
+NUEVO EN 0.1.0b
+- En 4:3 los menus son los de la version de iPad (pantallas de
+  continuar y 1P, seleccion, torre). Con TAMANO DE LA INTERFAZ > IPAD,
+  ademas, botones de pausa mas pequenos y el resto del iPad.
+- JUGAR > DUELO: dos jugadores en un PC (jugador 2 con flechas y
+  teclado numerico).
+- CONTROLES > MANDO: cada accion se asigna a cualquier boton.
+- START del mando y P pausan en cualquier pantalla.
+- Menu debug (F2) con pestanas arriba y sin estirarse.
+- En 16:9 y 21:9: la torre, logros, ajustes, ATRAS y otros textos
+  ya quedan en su sitio.
+
+NUEVO EN 0.1.0
+- El launcher abre en menos de un segundo: ahora vive descomprimido en
+  launcher\bin\ y UMK3-Launcher.exe solo lo abre. No borres esa carpeta.
+- Las pantallas de carga son mucho mas rapidas (usa todos los nucleos).
+- Calidad de texturas IPHONE / IPAD / SIN LIMITE.
+- GRAFICOS > RELACION DE ASPECTO: 3:2 (iPhone), 4:3 (la vista del iPad),
+  16:9 y 21:9. En 16:9 y 21:9 la pelea ocupa toda la pantalla y se ve
+  mas escenario a los lados, sin estirar ni hacer zoom; el HUD va a las
+  esquinas. Los menus usan todo el ancho: los botones del menu principal
+  se van a la izquierda y las demas pantallas quedan centradas.
+- Nuevas resoluciones de ventana 4:3 (1024x768...) y 21:9 (2560x1080,
+  3440x1440).
+- GRAFICOS > TAMANO DE LA INTERFAZ: IPAD deja el HUD de la pelea mas
+  pequeno, como en el iPad (los menus se ven igual).
+- COMPILAR TU .IPA > BUSCAR ACTUALIZACIONES: el launcher mira si hay una
+  version nueva en GitHub (tambien al abrirse, y te avisa con una
+  notificacion) y muestra sus novedades. DESCARGAR E INSTALAR la baja,
+  cierra el launcher, copia los archivos nuevos (tu umk3.ini y res\ se
+  quedan), lo vuelve a abrir y recompila el juego con tu .ipa.
+
+NUEVO EN 0.0.8
+- El juego ya es 100% jugable. Puede tener fallos; se iran arreglando.
+- Mercy completo, con su letrero y su musica; despues, el animality
+  (que exige un mercy) con su letrero, su musica y el animal. Ya
+  funcionan todos los finishers.
+- GRAFICOS: resolucion de ventana y resolucion 3D por separado (el juego
+  dibuja de verdad a la resolucion 3D y se escala a la ventana; 480 x 320
+  es la del iPhone), modo de pantalla (ventana, pantalla completa o
+  ventana sin bordes), relacion de aspecto (3:2, la original),
+  antialiasing hasta x16 y una casilla para ocultar el joystick y los
+  botones en pantalla.
+- El idioma del juego esta en JUGAR.
+- CONTROLES: dos categorias, JUGADOR 1 (6 y 5 botones) y DEBUG.
+- BUSCAR (el .ipa y el marco) abre el explorador tambien con el
+  launcher en pantalla completa.
+
+NUEVO EN 0.0.7b
+- El launcher de la 0.0.7 con el logo de UMK3 (logo.png en la carpeta
+  del juego).
+
+NUEVO EN 0.0.7
+- Babality: sale el letrero BABALITY con sus bloques que rebotan, y
+  suena su musica. Animality, mercy y friendship tambien recuperan su
+  letrero y su musica.
+- El sombrero de Kung Lao ya no sale negro en la seleccion.
+- Los congelados por Sub-Zero y su clon de hielo ya tienen textura de
+  hielo (antes blancos).
+- Menu debug por paginas, con raton, y paleta 1 o 2 para cada luchador.
+- Launcher: "Saltar las intros" y "Modo debug" en JUGAR; teclas del
+  modo debug configurables en CONTROLES, tambien la que abre el menu.
+- (De la sesion anterior, sin version publicada:) Supervivencia ya no se
+  cierra al ganar; el arpon de Scorpion se ve; Shao Karniceria con su HUD
+  y su dificultad; letreros FATALITY / ANIMALITY / FRIENDSHIP y el
+  narrador ya no se cortan; las combinaciones tecleadas de los finishers
+  funcionan (5 y 6 botones).
+
+NUEVO EN 0.0.6c
+- Menu debug (F2): nueva fila FINISHER. Durante el FINISH HIM, cuando el
+  rival ya esta mareado, hace que el jugador 1 ejecute un pit/escenario,
+  mercy, fatality 1 o 2, animality, babality o friendship, para ver como
+  se ven sin teclear la combinacion.
+
+NUEVO EN 0.0.6b
+- Los avisos del juego (sin conexion al pedir las clasificaciones,
+  "ESTAS SEGURO?" al empezar partida nueva...) salen dentro del juego,
+  con el estilo del iPhone (iOS 3), tambien en pantalla completa. Antes
+  eran ventanas de Windows que en pantalla completa quedaban escondidas.
+  Clic en un boton, o Enter (OK) / Esc (VOLVER).
+- El menu debug (F2) tiene ese mismo estilo, y con el menu abierto el
+  marco de pantalla completa ya no desaparece.
+
+NUEVO EN 0.0.6
+- Launcher nuevo: ventana libre (4:3 por defecto) y pantalla completa,
+  logo y menu de arcade; el boton JUGAR del menu solo abre la seccion.
+- Controles: pestaña para elegir 5 o 6 botones, con teclas propias para
+  cada esquema; el juego empieza con el esquema elegido.
+- La muerte de Shao Kahn al final del Arcade se ve completa (Shao Kahn
+  en luz verde con los rayos), y despues "<luchador> VENCE", "ES EL FIN
+  DE SHAO KAHN", "ERES EL CAMPEON DE ULTIMATE MK3".
+- Los efectos de los escenarios aparecen donde deben (la luna del
+  cementerio, el fondo del puente con pinchos...).
+- El muelle ya tiene suelo (antes negro).
+- Elegir una recompensa en la pantalla de tesoros ya no se queda
+  bloqueado.
+- Con un marco propio en pantalla completa, el marco ya no se ve a
+  traves de los huecos del escenario.
+
+NUEVO EN 0.0.5
+- El Arcade se puede completar y Shao Kahn ya no crashea.
+- Los botones del menu se ven como en el original (Ajustes, Estadisticas,
+  Logros, Marcadores...).
+- Sin fundidos a negro lentos entre rounds.
+- FINISH HIM para los personajes hombres.
+- Lista de combos: cada movimiento con sus iconos en el mismo lado.
+- Avisos de logros sin texto superpuesto.
+- Motaro corregido; Human Smoke se elige manteniendo el clic sobre Smoke.
+- Menu debug: ganar/perder round solo con el round en juego; saltar a
+  Motaro o Shao Kahn en Arcade.
+
+NUEVO EN 0.0.4
+- Modo debug (casilla en el launcher) con menu F2 dentro del juego:
+  cualquier pelea (Motaro y Shao Kahn incluidos), cualquier pantalla.
+- El audio ya no se pierde despues de dos peleas en Arcade.
+- La pantalla de desbloqueables al terminar el Arcade funciona (antes
+  crasheaba), igual que las demas pantallas con focos; el fondo metalico
+  ya no sale con una franja blanca.
+- Las peleas contra Motaro y Shao Kahn ya no crashean ni se comportan raro.
+
+ARREGLADO EN 0.0.3
+- La torre muestra la escalera real: cada peldano con su rival (antes
+  todos salian como Jade).
+- La animacion de la torre: la camara vuela a tu columna, baja a tu
+  peldano, sube despues de ganar y pasa sola a la pelea. Los jefes tienen
+  su propio escenario.
+- Menu de pausa completo: numero de botones, layout, volumen de musica y
+  de efectos.
+- Lista de movimientos: cada pagina con sus movimientos y sus iconos.
+- Los botones "i" (combos) y pausa se ven en el HUD y se pueden pulsar.
+- Teclas P (pausa) y M (combos); teclas del jugador 1 configurables en el
+  launcher.
+
+ARREGLADO EN 0.0.2
+- Las peleas se juegan hasta el final: round 2, fin de la pelea, pantalla
+  de Continue y siguiente pelea.
+- La camara sigue a los dos luchadores, como en el original.
+- Voces de los personajes y efectos de sonido en su momento.
+- Luchadores, el sombrero de Kung Lao y otros objetos ya no salen negros.
+- La melena de Sindel aparece, con su textura.
+- El joystick en pantalla se mueve.
+
+ERRORES CONOCIDOS EN 0.1.9
+- Vulkan y DirectX 12 son nuevos: si algo se ve mal, vuelve a OPENGL y
+  avisa con el registro (logs\).
+- Duplicar un luchador en un slot nuevo (el 27) todavia no esta.
+- Los cambios de datos de un mod (dano, hitbox) afectan al online: los
+  dos jugadores tienen que tener los mismos mods.
+- Fatalities de Reptile: en uno solo levanta los brazos.
+- La version de Linux no esta probada.
+- Online por internet solo en 64 bits.
+- La espera antes de una pelea online puede hacerse larga.
+- El combo del codo de Sub-Zero clasico aun no se ve del todo bien.
+- Algunos objetos aparte de los luchadores aun pueden no verse.
+- Faltan animaciones en algunos fatalities (el de Sonya no se ve bien).
+- Siguen apareciendo errores de texturas en algunos escenarios y
+  personajes (partes del sombrero de Kung Lao salen negras).
+- Algunos modos aparte del Arcade pueden cerrarse; el menu no esta
+  completo y faltan modos.
+- Al pausar a veces la pelea se ve encogida.
+- Algunos ataques especiales (sobre todo proyectiles) no tienen sonido.
+- Tras un round un luchador puede verse con el modelo de otro.
+- macOS todavia no tiene launcher.
+- Si el juego falla, mira logs\ junto a umk3-game.exe y reportalo
+  con ese archivo en GitHub (Issues).
+
+-----------------------------------------------------------------------
+ENGLISH (short)
+
+Windows port of UMK3 for iOS 1.2.59, by decompilation. Nothing of the game
+is included. Open UMK3-Launcher.exe, pick your own iPhone .ipa (1.2.59),
+press Compilar: it downloads a pinned compiler, checks your binary, builds
+umk3-game.exe and copies res\ out of your .ipa. Choose resolution,
+fullscreen and language (saved in umk3.ini) and press PLAY. The button at
+the top right switches the launcher between English and Spanish.
+Fight keys: W A S D or arrows to move (two at once for diagonals);
+U high punch, I low punch, O block, J high kick, K low kick, L run
+(or numpad 7 8 9 / 4 5 6). P pause, M moves list; Esc no longer quits.
+Player 1 keys can be changed in the launcher (CONTROLS), for the 6- and
+the 5-button layout separately. New in 0.0.9: gamepads (Xbox, PlayStation 4/5,
+Switch Pro, other USB pads; pick the input device in CONTROLS), a palette
+picker on the select screen ("< COLOR 1 >", saved), no input lag, crash
+reports, the Kombat Kode loading tip fixed, debug TOOLS (hitboxes, fight
+speed, save states), smaller launcher buttons. New in 0.1.0b: the iPad build's menus on 4:3,
+PLAY > DUELO (two players, one PC), free gamepad binding, a tabbed debug
+menu, wide-screen fixes. New in 0.1.8 beta: MODS in the launcher -- a mod manager with priority, on/off, categories and covers, a model viewer that shows the game with or without mods, a character editor for each fighter's damage, hitboxes, texts and textures, export to FBX, USD and OBJ, and FBX animations and models brought back from Blender; Motaro and Shao Kahn no longer crash the game when picked in the debug menu; Linux compiles without GL headers installed and updates itself. New in 0.1.7 beta: a new launcher after the console's main menu (marble rings, a curved menu with a glass orb and a turning M, your own picture from aditional textures\image.png), full-screen sections, the 64-bit debug menu no longer crashes on choosing a stage or turning on hitboxes, and the Linux compiler download no longer stops at once. New in 0.1.6 beta: ONLINE over the internet (Epic Online Services, 64-bit), rollback netcode, a reorganised debug menu (F2) with infinite health, frozen clock, FPS and online numbers, the mouse wheel in the menus, alerts answered with the pad, the white textures of some 64-bit runs fixed, and an untested Linux package. New in 0.1.5 alpha: PLAY > ONLINE, two games against each other by player code (same PC or local network for now), the versus spotlights and the FATALITY sign fixed in 64 bits. New in 0.1.4 beta: a 64-bit build (WINDOWS in the launcher), winning in
+Arcade no longer closes the game. New in 0.1.3 beta: the game's menus with the pad or
+the keyboard, a console-style launcher that closes when the game opens, key
+and button pictures (Free Input Prompts by Julio Cacko, CC0), player two's
+pause, moves list and accept keys. New in 0.1.2: an in-game settings menu (Esc:
+graphics and controls without restarting, quit), a player profile (name,
+ID, icon), new continue screens for 16:9 and 21:9. New in 0.1.1: player two's own keys and gamepad
+for DUELO (CONTROLS > PLAYER 2), DUELO with every interface size, select
+and tower screens fixed on wide screens with the iPad interface. New in 0.0.7: BABALITY banner and tune (and animality, mercy, friendship
+banners), Kung Lao's hat on the select screen, Sub-Zero's ice (frozen
+fighters, ice clone), a paged debug menu with mouse and palettes, skip the
+intros, debug keys in the launcher. New in 0.0.6c: a FINISHER row in the F2 debug menu forces player one's
+finishers during FINISH HIM. New in 0.0.6b: the game's alerts and the F2 debug menu are drawn inside
+the game in the iPhone OS 3 style (they were Windows message boxes, hidden
+in fullscreen). New in 0.0.6: a new launcher (resizable,
+fullscreen, layout tab), Shao Kahn's death and the closing texts at the
+end of Arcade, stage effects placed correctly, the Waterfront floor, the
+treasure-screen softlock fixed. New in 0.0.5: Arcade can be completed, menu buttons as in the original,
+no slow fades, FINISH HIM for men, moves-list layout, Motaro and Human
+Smoke fixed. New in 0.0.4: debug mode (launcher box, F2 menu in game: any fight,
+bosses included, any screen), audio no longer dies after two fights, the
+unlockables screen works, Motaro and Shao Kahn fights fixed. New in 0.0.3: the
+tower shows the real ladder (no more all-Jade) and animates as in the
+original, the pause menu is complete, the moves list has its icons on
+every page, the HUD "i" and pause buttons are back. New in 0.0.2: fights play to the
+end (round 2, Continue, next fight), the camera follows both fighters,
+voices and sounds, no more black fighters, Sindel's hair, the on-screen
+joystick moves. Known problems: the menus are incomplete and some menu
+sections crash; several texture errors remain. Debug mode: tick it in the launcher; F2 opens the in-game debug menu
+(any fight, bosses included, any screen), F3/F6-F12 are direct keys.
+
+Ultimate Mortal Kombat 3 is (c) Electronic Arts / Midway / Warner Bros.
+This project is not affiliated with them. Use only a copy you own.

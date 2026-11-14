@@ -1,0 +1,149 @@
+# ---------------------------------------------------------------------------
+# LEGAL — never commit copyrighted game data or derived binaries
+# ---------------------------------------------------------------------------
+# The original game is copyright Electronic Arts / Midway / Warner Bros.
+# NOTHING derived from the retail binary or its assets belongs in this repo.
+# Every user must supply their own legally obtained copy.
+
+# Game packages and extracted bundles
+*.ipa
+*.app/
+IPA/
+EXTRACTED/
+Payload/
+
+# Game assets of any kind
+*.meshset
+*.skin
+*.skinanim
+*.bones
+*.scene
+*.lighting
+*.events
+*.pvr
+*.x
+
+# Machine-translated output of the retail binary (derivative work).
+# Generated locally by tools/armrecomp/recomp.py from YOUR copy.
+recompiled/
+
+# Raw Ghidra output (derivative work, and regenerable).
+# Produced by tools/decomp/decomp_driver.py from YOUR copy.
+src/decomp/**/_raw/
+
+# Everything derived from the retail binary lands here by default.
+# Override the location with the UMK3_WORK environment variable.
+work/
+
+# Dumps taken from the retail binary
+*.armv7
+symbols.txt
+functions.txt
+func-to-file.txt
+asserts.txt
+worklist/
+
+# ---------------------------------------------------------------------------
+# Third-party tools — install them yourself, do not vendor
+# ---------------------------------------------------------------------------
+TouchHLE/
+touchHLE*/
+ghidra_*_PUBLIC/
+GhidraMCP/
+tools/ghidra_*/
+*.gpr
+*.rep/
+
+# ---------------------------------------------------------------------------
+# Build artifacts
+# ---------------------------------------------------------------------------
+build/
+*.exe
+*.o
+*.obj
+*.a
+*.lib
+*.dll
+*.so
+*.dylib
+
+# ---------------------------------------------------------------------------
+# Environment
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.mcp.json
+.claude/settings.local.json
+.DS_Store
+Thumbs.db
+*.log
+
+# build directories
+build/
+build_*/
+build-*/
+dist/
+
+# Raw disassembly / transcripts of the retail binary (derivative work).
+# The EA SDK is not decompiled: the game-facing boundary is stubbed by hand
+# in runtime/gamecode_stubs.c, the rest of the SDK is simply not linked.
+/asm/
+/easdk/
+/transcript/
+/easdk_stubs.c
+
+# The launcher's output in a release or repository root: built from the
+# player's own .ipa, never committed.
+/umk3-game
+/umk3-game.exe
+/umk3-game64.exe
+/umk3.ini
+/profiles.ini
+/profiles-*.ini
+/aditional textures/
+/res/
+/save/
+/logs/
+/toolchain/
+/build-game/
+*.ppm
+
+# The Electron launcher: dependencies and packaged output stay local.
+launcher/app/node_modules/
+launcher/app/dist/
+/executables/
+
+
+# The Epic Online Services SDK is part of the repository (Mary's decision,
+# 2026-10-23): tools/eos/ holds its headers, its Windows and Linux libraries
+# and Epic's notices; its import libraries are not needed
+tools/eos/SDK/Lib/
+!tools/eos/SDK/Bin/*.dll
+!tools/eos/SDK/Bin/*.so
+
+# ---------------------------------------------------------------------------
+# PS Vita port — never commit the game's data or anything built from it
+# ---------------------------------------------------------------------------
+# Assets unpacked from the player's .ipa, and the asset pack built from them
+vita/data/
+*.pak
+# The VPK and eboot embed tables extracted from the retail binary
+*.vpk
+*.velf
+eboot.bin
+# Icon and LiveArea images: generated from the player's own .ipa by
+# vita/make_livearea.py (they are the game's artwork)
+vita/sce_sys/*.png
+vita/sce_sys/livearea/contents/*.png
+# The .ipa's iTunes files (artwork, and the purchase metadata: personal data)
+iTunesArtwork
+iTunesMetadata.plist
+# Local screenshots of the game and editor backups
+Screenshot/
+*.orig
+*.bak
+*.bak[0-9]
+*.tgz
+*.elf
