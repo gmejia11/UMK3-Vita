@@ -147,3 +147,8 @@ Screenshot/
 *.bak[0-9]
 *.tgz
 *.elf
+
+# tools/build/ holds the build's own scripts (logic_tables.py, macho.py, ...):
+# the "build/" rule above must not hide them
+!tools/build/
+tools/build/__pycache__/

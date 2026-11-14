@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Inserts 4 minimal changes into the root CMakeLists.txt for the 'vita' backend.
+"""Inserts 5 minimal changes into the root CMakeLists.txt for the 'vita' backend.
 Idempotent. Keeps a copy in CMakeLists.txt.orig. Respects CRLF."""
 import sys, os, shutil
 root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -30,6 +30,11 @@ sub('    else()\n        message(FATAL_ERROR "Unknown UMK3_BACKEND',
 sub("umk3_target_link_platform(umk3-game TRUE)\n",
     'umk3_target_link_platform(umk3-game TRUE)\n'
     '            if(UMK3_BACKEND STREQUAL "vita")\n                umk3_vita_package(umk3-game)\n            endif()\n', "package")
+
+sub('        set(UMK3_GAMECODE_GLOBALS "${CMAKE_SOURCE_DIR}/src/runtime/gamecode_globals.c")\n',
+    '        if(UMK3_BACKEND STREQUAL "vita")\n            umk3_vita_split_tables()    # vita/vita.cmake: no game data in the VPK\n'
+    '        endif()\n\n'
+    '        set(UMK3_GAMECODE_GLOBALS "${CMAKE_SOURCE_DIR}/src/runtime/gamecode_globals.c")\n', "tables")
 
 shutil.copy(path, path + ".orig")
 out = s.replace("\n", "\r\n") if crlf else s

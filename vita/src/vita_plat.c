@@ -14,6 +14,7 @@
 #include <psp2/io/stat.h>
 #include <psp2/kernel/processmgr.h>
 #include <psp2/kernel/clib.h>
+#include <psp2/message_dialog.h>
 #include "platform.h"
 
 #define WEAK __attribute__((weak))
@@ -85,6 +86,30 @@ static unsigned cfg_mb(const char *key, unsigned def) {
   return v;
 }
 
+/* The game cannot run without its tables (vita_tables.c): show why on the Vita's own message dialog, then quit. */
+static void tables_missing(void) {
+  extern char vita_tables_err[];
+  static char msg[512];
+  SceMsgDialogUserMessageParam um;
+  SceMsgDialogParam p;
+  snprintf(msg, sizeof msg, "Ultimate Mortal Kombat 3 cannot start.\n\n%s", vita_tables_err);
+  memset(&um, 0, sizeof um);
+  um.buttonType = SCE_MSG_DIALOG_BUTTON_TYPE_OK;
+  um.msg = (const SceChar8 *)msg;
+  sceMsgDialogParamInit(&p);
+  p.mode = SCE_MSG_DIALOG_MODE_USER_MSG;
+  p.userMsgParam = &um;
+  if (sceMsgDialogInit(&p) >= 0) {
+    while (sceMsgDialogGetStatus() != SCE_COMMON_DIALOG_STATUS_FINISHED) {
+      glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+      glClear(GL_COLOR_BUFFER_BIT);
+      vglSwapBuffers(GL_TRUE);
+    }
+    sceMsgDialogTerm();
+  }
+  sceKernelExitProcess(0);
+}
+
 WEAK bool plat_open(const char *title, int width, int height) {
   (void)title; (void)width; (void)height;
   sceIoMkdir("ux0:data/umk3", 0777);
@@ -132,6 +157,7 @@ WEAK bool plat_open(const char *title, int width, int height) {
   if (vita_cfg_cp) vglSetCircularPoolSize(vita_cfg_cp * 1024u * 1024u);   /* before vglInit */
   vglInitExtended(vita_cfg_lp * 1024u * 1024u, SCR_W, SCR_H, vita_cfg_th * 1024u * 1024u, SCE_GXM_MULTISAMPLE_NONE);
   { extern volatile int vita_gl_ready; vita_gl_ready = 1; }   /* the log thread may now query vitaGL */
+  { extern int vita_tables_ok; if (!vita_tables_ok) tables_missing(); }
   g_t0 = sceKernelGetProcessTimeWide();
   g_open = 1;
   read_pad();

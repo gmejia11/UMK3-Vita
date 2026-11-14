@@ -15,7 +15,7 @@ Based on [MaryNCRT/Ultimate-Mortal-Kombat-3-iOS-Decompiled](https://github.com/M
 This repository is a fork of **[MaryNCRT's Ultimate Mortal Kombat 3 iOS decompilation and PC port](https://github.com/MaryNCRT/Ultimate-Mortal-Kombat-3-iOS-Decompiled)** (based on its v0.1.11 beta), with a PlayStation Vita platform layer added. The game code is the decompilation from that project; everything Vita-specific lives in [`vita/`](vita/) and in code marked `UMK3_VITA`.
 
 > [!IMPORTANT]
-> **No game data is distributed here.** You need your own legally obtained copy of *Ultimate Mortal Kombat 3* for iOS (**v1.2.59**, `.ipa`). The build extracts what it needs from it; the VPK you build contains data from your copy and must not be shared.
+> **No game data is distributed here — not in the repository, not in the VPK.** You need your own legally obtained copy of *Ultimate Mortal Kombat 3* for iOS (**v1.2.59**, `.ipa`); every game file, including the fight engine's tables, is made from it on your computer and copied to the Vita.
 
 <p align="center">
   <img src="docs/img/vita/fight.jpg" alt="A fight on the PS Vita" width="49%">
@@ -32,17 +32,29 @@ This repository is a fork of **[MaryNCRT's Ultimate Mortal Kombat 3 iOS decompil
 - Known: Classic Sub-Zero's arm kombo has missing poses — the iOS release's own frame lists lack them (`RPCOMBO6`–`RPCOMBO10`); the port borrows the four that exist elsewhere and holds the last pose for the fifth, which no fighter has.
 - Changes from 2026-11-14 (batched blood drops, lighter log, kombo backports from upstream) build cleanly and have been run on a Vita; the kombo options were tried (the default `kombo_slide=1` plays best). See [`docs/PROGRESS.md`](docs/PROGRESS.md).
 
-### Building (Linux / WSL)
+### Installing
+
+1. **The VPK:** install `UMK3-Vita.vpk` (from [Releases](https://github.com/gmejia11/UMK3-Vita/releases), or one you built) with VitaShell. It holds only the port's code and a generic icon.
+2. **The game's data, from your `.ipa`:** on a PC with Python 3, with this repository at the same version as the VPK:
+   ```bash
+   python3 vita/make_data.py path/to/UMK3_1.2.59.ipa
+   # -> vita/data/: res/, frames.x, moves_data.x, umk3.pak, umk3_tables.bin
+   ```
+3. **Copy `vita/data/` to `ux0:data/umk3/`** on the Vita — VitaShell's FTP (press SELECT), or `./vita/deploy_data.sh <VITA_IP> --all`.
+
+`umk3_tables.bin` holds the fight engine's tables, read from the game's binary; the VPK loads it at start-up and says so on screen if it is missing or was made for another version. Settings are in `ux0:data/umk3/vita.cfg`; see [`vita/README_VITA.md`](vita/README_VITA.md).
+
+### Building the VPK (Linux / WSL)
 
 Requires [VitaSDK](https://vitasdk.org/) with vitaGL, SDL2 and SDL2_mixer (`vdpm`), Python 3 and, optionally, Pillow (for the icon).
 
 ```bash
-python3 vita/apply_cmake_patch.py      # once; idempotent
-./vita/build.sh path/to/UMK3_1.2.59.ipa
-# -> build-vita/umk3.vpk, vita/data/ (game files) and vita/data/umk3.pak
+./vita/build.sh path/to/UMK3_1.2.59.ipa            # icon from your .ipa, for yourself
+./vita/build.sh path/to/UMK3_1.2.59.ipa --public   # generic icon, a VPK you can share
+# -> build-vita/umk3.vpk, and vita/data/ with the game's files, umk3.pak and umk3_tables.bin
 ```
 
-Install the VPK with VitaShell, then copy the data to `ux0:data/umk3/` (`./vita/deploy_data.sh <VITA_IP> --all` over VitaShell's FTP). Settings are in `ux0:data/umk3/vita.cfg`; see [`vita/README_VITA.md`](vita/README_VITA.md).
+The build needs your `.ipa` to know the tables' names and sizes, but compiles them empty: their values go to `umk3_tables.bin` (`vita/tables_split.py`), so `eboot.bin` carries none of the game's data.
 
 ### Controls
 

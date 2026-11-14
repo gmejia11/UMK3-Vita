@@ -10,18 +10,36 @@ Requires [VitaSDK](https://vitasdk.org/) with vitaGL, SDL2 and SDL2_mixer
 (`vdpm`), Python 3 and, optionally, Pillow (for the icon and LiveArea).
 
 1. `sudo apt install ninja-build` (or let `build.sh` use Makefiles)
-2. `python3 vita/apply_cmake_patch.py` — four insertions in `CMakeLists.txt`
+2. `python3 vita/apply_cmake_patch.py` — five insertions in `CMakeLists.txt`
    (already applied in this repository; it is idempotent)
-3. `./vita/build.sh path/to/UMK3_1.2.59.ipa` → `build-vita/umk3.vpk`,
-   `vita/data/` (the game's files) and `vita/data/umk3.pak`
+3. `./vita/build.sh path/to/UMK3_1.2.59.ipa [--public]` → `build-vita/umk3.vpk`,
+   and `vita/data/` with the game's files, `umk3.pak` and `umk3_tables.bin`
 4. Install the VPK with VitaShell, then copy the data to `ux0:data/umk3/`:
    `./vita/deploy_data.sh VITA_IP --all` over VitaShell's FTP (press SELECT in
    VitaShell). Later, `./vita/deploy_data.sh VITA_IP` uploads only `umk3.pak`
-   and leaves your saves and `vita.cfg` alone.
+   and `umk3_tables.bin` and leaves your saves and `vita.cfg` alone.
 
-The icon and LiveArea images are made from your `.ipa` by
-`vita/make_livearea.py`; the repository carries no game artwork. The VPK you
-build contains data from your copy of the game: do not share it.
+With a VPK someone else built, only the data is needed:
+`python3 vita/make_data.py path/to/UMK3_1.2.59.ipa` fills `vita/data/`.
+
+## No game data in the VPK
+
+The fight engine's tables (moves, damage, animation tables, the AI's scripts,
+the arena names) are not files in the `.ipa`: they live inside the game's
+binary, and the PC build compiles them into the program. On the Vita:
+
+- `vita/tables_split.py` turns the three generated files (`logic_tables.c`,
+  `level_info.c`, `seq_data.c`) into stubs — the same tables, names and sizes,
+  zero-filled — and writes their values and address words to `umk3_tables.bin`.
+- `src/vita_tables.c` fills the tables from `ux0:data/umk3/umk3_tables.bin`
+  before `main()`, pointing each address word at our own code. A hash of the
+  layout must match; if the file is missing or does not match, the Vita shows
+  a message and the game quits.
+- `--public` uses a generic icon and LiveArea (`make_livearea.py --generic`);
+  without it they are made from your `.ipa`'s artwork.
+
+Checked against a build with the tables compiled in: all 1,122 tables come out
+byte for byte the same once loaded, every address included.
 
 Files: `vita.cmake` (the backend), `src/vita_plat.c` (all of `platform.h`,
 weak symbols), `src/vita_rgl.c` (replaces `rgl_front.c`), `src/vita_fs.c`

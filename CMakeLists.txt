@@ -158,6 +158,10 @@ if(UMK3_BINARY)
                     "${UMK3_BINARY}"
             COMMENT "Extracting the playback scripts from ${UMK3_BINARY}")
 
+        if(UMK3_BACKEND STREQUAL "vita")
+            umk3_vita_split_tables()    # vita/vita.cmake: no game data in the VPK
+        endif()
+
         set(UMK3_GAMECODE_GLOBALS "${CMAKE_SOURCE_DIR}/src/runtime/gamecode_globals.c")
         if(UMK3_USE_LOW32)
             set(UMK3_GAMECODE_GLOBALS "${CMAKE_BINARY_DIR}/gamecode_globals64.c")

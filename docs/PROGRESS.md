@@ -50,6 +50,21 @@ User report: the Vita build runs well; asked for a review and the improvements.
 - Published as https://github.com/gmejia11/UMK3-Vita (2026-11-14): game artwork, data
   and the .ipa's iTunes files kept out (.gitignore); the icon and LiveArea are made from
   the player's .ipa by `vita/make_livearea.py`; upstream's CI workflows removed.
+- A VPK with no game data (2026-11-14, NOT yet run on a Vita). The PC build compiles
+  the tables extracted from the binary (logic_tables.c, level_info.c, seq_data.c) into
+  the program. On the Vita, `vita/tables_split.py` (called by `umk3_vita_split_tables`
+  in vita.cmake, hooked in CMakeLists.txt) compiles them as zero-filled stubs and writes
+  their values + address words to umk3_tables.bin; `vita/src/vita_tables.c` loads it in a
+  constructor (layout hash checked); plat_open shows a sceMsgDialog and quits when it is
+  missing. Verified: loading the file over the stubs gives all 1,122 tables byte for byte
+  as the build with real tables (addresses resolved with readelf values, Thumb bit
+  included); the new ELF's tables are all zero; the address list (1,482 entries) is right.
+  The only table-like data left in the ELF is upstream's committed gamecode_globals.c.
+  `vita/make_data.py` makes a player's data from their .ipa (same umk3_tables.bin and
+  umk3.pak as the build's); `build.sh --public` gives a generic icon. Also fixed:
+  tools/build/ was never pushed (the `build/` ignore rule), build.sh with a .ipa called a
+  tools/build/unpack_ipa.py that does not exist (now extract_ipa.py first), and
+  extract_ipa.py did not copy res/Info.plist (the language files).
 - Controls (2026-11-14, not yet run on a Vita): the rear touch pad's whole top strip is now
   the special button S (`rear=1`, default; `rear=2` = the old left-corner run / right-corner
   special; `rear=0` off); `vita.cfg buttons=5|6` fixes the layout via `port_buttons_set`

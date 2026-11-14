@@ -8,6 +8,25 @@ if(VITA)
   set(UMK3_VITA_TITLEID "UMKT00003" CACHE STRING "Vita title id (4 letters + 5 digits)")
 endif()
 
+# The tables extracted from the game's binary are NOT compiled into the VPK: tables_split.py turns the three
+# generated files into stubs (names and sizes, no values) and writes the values to umk3_tables.bin, which goes to
+# ux0:data/umk3/ and is loaded at start-up (src/vita_tables.c). A macro, so the caller's variables change.
+macro(umk3_vita_split_tables)
+  set(_umk3_tbl_dir "${CMAKE_BINARY_DIR}/vita_tables")
+  set(UMK3_VITA_TABLES_BIN "${CMAKE_BINARY_DIR}/umk3_tables.bin")
+  add_custom_command(
+    OUTPUT "${_umk3_tbl_dir}/logic_stub.c" "${_umk3_tbl_dir}/level_stub.c" "${_umk3_tbl_dir}/seq_stub.c"
+           "${UMK3_VITA_TABLES_BIN}"
+    COMMAND Python3::Interpreter "${UMK3_VITA_DIR}/tables_split.py"
+            --stub-dir "${_umk3_tbl_dir}" --bin "${UMK3_VITA_TABLES_BIN}"
+            "logic=${UMK3_LOGIC_TABLES}" "level=${UMK3_LEVEL_INFO}" "seq=${UMK3_SEQ_DATA}"
+    DEPENDS "${UMK3_VITA_DIR}/tables_split.py" "${UMK3_LOGIC_TABLES}" "${UMK3_LEVEL_INFO}" "${UMK3_SEQ_DATA}"
+    COMMENT "Vita: tables as stubs in the VPK, their values in umk3_tables.bin")
+  set(UMK3_LOGIC_TABLES "${_umk3_tbl_dir}/logic_stub.c")
+  set(UMK3_LEVEL_INFO "${_umk3_tbl_dir}/level_stub.c")
+  set(UMK3_SEQ_DATA "${_umk3_tbl_dir}/seq_stub.c")
+endmacro()
+
 function(umk3_vita_link_platform tgt)
   set(R "${CMAKE_SOURCE_DIR}/src/runtime")
 
@@ -20,6 +39,7 @@ function(umk3_vita_link_platform tgt)
     ${UMK3_VITA_DIR}/src/vita_par.c
     ${UMK3_VITA_DIR}/src/vita_watch.c
     ${UMK3_VITA_DIR}/src/vita_zmalloc.c
+    ${UMK3_VITA_DIR}/src/vita_tables.c    # fills the tables from ux0:data/umk3/umk3_tables.bin
     ${UMK3_VITA_DIR}/src/vita_fs.c        # relative paths -> ux0:data/umk3/
     ${R}/platform/sdl_audio.c             # audio through SDL2 (vdpm)
     ${R}/platform/ui_alert.c
