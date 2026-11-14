@@ -34,7 +34,7 @@ This repository is a fork of **[MaryNCRT's Ultimate Mortal Kombat 3 iOS decompil
 
 ### Installing
 
-1. **The VPK:** install `UMK3-Vita.vpk` (from [Releases](https://github.com/gmejia11/UMK3-Vita/releases), or one you built) with VitaShell. It holds only the port's code and a generic icon.
+1. **The VPK:** install `UMK3-Vita.vpk` (from [Releases](https://github.com/gmejia11/UMK3-Vita/releases), or one you built) with VitaShell. It holds the port's code and its icon and LiveArea images, and none of the game's data.
 2. **The game's data, from your `.ipa`:** on a PC with Python 3, with this repository at the same version as the VPK:
    ```bash
    python3 vita/make_data.py path/to/UMK3_1.2.59.ipa
@@ -88,4 +88,4 @@ The game has two layouts, as on iOS: **6 buttons**, like the arcade cabinet, and
 
 The original project's documentation (how the game works, the engine, the file formats, the verification method) is in [`docs/`](docs/); for its PC builds and releases, see [its repository](https://github.com/MaryNCRT/Ultimate-Mortal-Kombat-3-iOS-Decompiled).
 
-*Ultimate Mortal Kombat 3* was created by Midway Games and ported to iOS by EA Mobile. This project is unaffiliated with Warner Bros. Entertainment or Electronic Arts, and distributes no copyrighted code or assets. Licensed GPL-2.0-or-later, as the project it is based on ([LICENSE](LICENSE)).
+*Ultimate Mortal Kombat 3* was created by Midway Games and ported to iOS by EA Mobile; *Mortal Kombat* and the dragon logo are trademarks of Warner Bros. Entertainment. This is a free, non-commercial fan project, unaffiliated with and not endorsed by Warner Bros. Entertainment or Electronic Arts; it distributes no game code or data. Licensed GPL-2.0-or-later, as the project it is based on ([LICENSE](LICENSE)).
