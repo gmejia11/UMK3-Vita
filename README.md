@@ -44,7 +44,27 @@ python3 vita/apply_cmake_patch.py      # once; idempotent
 
 Install the VPK with VitaShell, then copy the data to `ux0:data/umk3/` (`./vita/deploy_data.sh <VITA_IP> --all` over VitaShell's FTP). Settings are in `ux0:data/umk3/vita.cfg`; see [`vita/README_VITA.md`](vita/README_VITA.md).
 
-**Controls:** Square = High Punch, Cross = Low Punch, Triangle = High Kick, Circle = Low Kick, R = Block, L (or the rear touch pad's top-left corner) = Run, Start = Pause, Select = Moves list.
+### Controls
+
+The game has two layouts, as on iOS: **6 buttons**, like the arcade cabinet, and **5 buttons**, with one punch and one kick button. Both have the **special button (S)**, which launches the special moves ("powers") — on the Vita it is the **rear touch pad**.
+
+| Vita | 6 buttons (arcade) | 5 buttons |
+|---|---|---|
+| D-pad / left stick | Move | Move |
+| Square | High Punch | Punch |
+| Triangle | High Kick | Punch |
+| Cross | Low Punch | Kick |
+| Circle | Low Kick | Kick |
+| R | Block | Block |
+| L | Run | Run |
+| **Rear touch pad** (top half) | **Special (S)** | **Special (S)** |
+| Start | Pause | Pause |
+| Select | Moves list | Moves list |
+| Front touch screen | Menus and the game's on-screen buttons | Menus and the game's on-screen buttons |
+
+**Switching between 5 and 6 buttons:** in the game, **OPTIONS → CONTROLS**, tap the buttons box (it toggles 5 / 6 and is saved). To fix one layout instead, put `buttons=6` (or `buttons=5`) in `ux0:data/umk3/vita.cfg`.
+
+**Rear touch pad:** touch anywhere on its top half for the special button; the lower half, where your fingers rest, does nothing. `rear=2` in `vita.cfg` gives the old layout (top-left corner = Run, top-right = Special) and `rear=0` turns it off.
 
 ### Credits
 

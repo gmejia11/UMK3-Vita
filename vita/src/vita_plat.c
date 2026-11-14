@@ -61,7 +61,8 @@ static int pad_word(void) {
    legacy_pool_mb (default 4), ram_threshold_mb (default 8). */
 unsigned vita_cfg_cp, vita_cfg_lp, vita_cfg_th;
 int vita_rear_swap;             /* vita.cfg rearswap=1: if the rear pad's sides come out swapped */
-int vita_rear_on = 1;           /* vita.cfg rear=0 turns the rear pad (L2/R2) off */
+int vita_rear_on = 1;           /* vita.cfg rear=: 1 the whole top strip is the special button, 2 left corner run + right corner
+                                   special (the old layout), 0 off */
 int vita_tex16;                /* 0 = RGBA8888 (default); 1 = opaque ones to RGB565; 2 = also those with alpha to RGBA4444 */
 /* vita.cfg is read into memory ONCE: it used to be opened once per key (~20 opens on the card at start-up). */
 static char g_cfg[4096];
@@ -121,6 +122,9 @@ WEAK bool plat_open(const char *title, int width, int height) {
   { extern volatile int vita_sgn; vita_sgn = (int)cfg_mb("sgn", 1); }
   vita_rear_swap = (int)cfg_mb("rearswap", 0);
   vita_rear_on = (int)cfg_mb("rear", 1);
+  /* buttons=5 or 6: the layout, over the one saved from OPTIONS > CONTROLS (as umk3.ini buttons= does). Without the key, the
+   * game's own setting is used, and the CONTROLS screen switches it. */
+  { extern void port_buttons_set(int n); unsigned b = cfg_mb("buttons", 0); if (b == 5u || b == 6u) port_buttons_set((int)b); }
   { extern volatile int vita_prof; vita_prof = (int)cfg_mb("prof", 0); }
   { extern volatile int vita_par; vita_par = (int)cfg_mb("par", 0); }
   { extern int vita_ani_keep; vita_ani_keep = (int)cfg_mb("anikeep", 0); }
@@ -192,9 +196,10 @@ WEAK int plat_ask(const unsigned short *msg, const unsigned short *ok, const uns
 }
 
 /* ------------------------------------------------------------ keys / pads */
-/* REAR touch pad as L2/R2. Only the two TOP corners count (where the fingers do not rest while holding the console):
- * left corner = L2 (run), right corner = R2 (special). The rear pad is mirrored relative to the screen; if they come
- * out swapped for you, rearswap=1 in vita.cfg. */
+/* REAR touch pad. Only its TOP strip counts (the fingers rest lower down while holding the console).
+ * rear=1 (default): a touch anywhere on the top strip = R2, the special button (S: specials, the "powers").
+ * rear=2: the old layout -- left corner = L2 (run), right corner = R2 (special). The rear pad is mirrored relative to the
+ * screen; if the corners come out swapped for you, rearswap=1 in vita.cfg. */
 static int g_rear_l2, g_rear_r2;          /* read ONCE per frame in read_pad (it used to be read up to 4 times) */
 static void rear_poll(void) {
   SceTouchData t;
@@ -205,6 +210,7 @@ static void rear_poll(void) {
   for (unsigned i = 0; i < t.reportNum && i < 8; i++) {
     int x = t.report[i].x, y = t.report[i].y;
     if (y > 380) continue;                                   /* top strip (the pad is ~890 high) */
+    if (vita_rear_on != 2) { *r2 = 1; continue; }            /* rear=1: the whole strip is the special button */
     int mine_right = x < 640, mine_left = x > 1279;          /* mirrored: small x = the player's right side */
     if (vita_rear_swap) { int tmp = mine_right; mine_right = mine_left; mine_left = tmp; }
     if (mine_left) *l2 = 1;
@@ -247,6 +253,7 @@ WEAK void plat_key_label(int code, char *out, int n) {
     case PK_HP: s = "SQUARE"; break;   case PK_LP: s = "CROSS";    break;
     case PK_BL: s = "R";      break;   case PK_HK: s = "TRIANGLE"; break;
     case PK_LK: s = "CIRCLE"; break;   case PK_RUN: s = "L";       break;
+    case PK_SPECIAL: s = "REAR TOUCH"; break;
     case PK_5_P: s = "SQUARE/TRIANGLE"; break;  case PK_5_B: s = "R"; break;
     case PK_5_K: s = "CROSS/CIRCLE";    break;  case PK_5_R: s = "L"; break;
     case PK_PAUSE: s = "START"; break; case PK_MOVES: s = "SELECT"; break;

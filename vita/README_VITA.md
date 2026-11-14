@@ -44,7 +44,9 @@ One `key=value` per line; anything missing takes its default.
 | `chain` | 0 | 1 = no punch-chain limit (99 instead of the arcade's 4–6). Changes gameplay. |
 | `sndcache`, `sndcache_mb` | 1, 16 | Keep converted sound effects (up to N MB) instead of converting on every play. |
 | `sndfast` | 1 | Fast effect conversion (linear interpolation). |
-| `rear`, `rearswap` | 1, 0 | Rear touch pad: top-left corner = L2 (run), top-right = R2. `rearswap=1` swaps the sides. |
+| `buttons` | — | `5` or `6`: the button layout, over the one saved from OPTIONS → CONTROLS. Without it, the game's own setting is used. |
+| `rear` | 1 | Rear touch pad, top half only. 1 = anywhere there is the special button (S). 2 = top-left corner Run, top-right Special. 0 = off. |
+| `rearswap` | 0 | With `rear=2`, swaps the two corners. |
 | `par` | 0 | 1 = decode textures on 3 cores (`vita_par.c`). |
 | `circular_pool_mb`, `legacy_pool_mb`, `ram_threshold_mb` | 12, 4, 8 | vitaGL memory pools. |
 | `log` | 1 | Periodic line in `vita_log.txt` every 2 s. The `LOAD` lines are always written. |

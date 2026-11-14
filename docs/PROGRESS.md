@@ -50,6 +50,11 @@ User report: the Vita build runs well; asked for a review and the improvements.
 - Published as https://github.com/gmejia11/UMK3-Vita (2026-11-14): game artwork, data
   and the .ipa's iTunes files kept out (.gitignore); the icon and LiveArea are made from
   the player's .ipa by `vita/make_livearea.py`; upstream's CI workflows removed.
+- Controls (2026-11-14, not yet run on a Vita): the rear touch pad's whole top strip is now
+  the special button S (`rear=1`, default; `rear=2` = the old left-corner run / right-corner
+  special; `rear=0` off); `vita.cfg buttons=5|6` fixes the layout via `port_buttons_set`
+  (without it, the game's own OPTIONS > CONTROLS toggle, FrontEnd.c BOXLT, Settings[4], is used);
+  `plat_key_label(PK_SPECIAL)` = "REAR TOUCH". README has a controls table for both layouts.
 - Translated to English (2026-11-14): everything Vita-specific -- `vita/` (README,
   sources, scripts), the `UMK3_VITA` comments in the shared code, and the log lines:
   `CARGA` -> `LOAD`, `gotas:` -> `drops:`, `juego: fotograma=` -> `game: frame=`,
