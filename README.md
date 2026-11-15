@@ -34,6 +34,8 @@ This repository is a fork of **[MaryNCRT's Ultimate Mortal Kombat 3 iOS decompil
 
 ### Installing
 
+**Requirements on the Vita:** HENkaku / Ensō with **Enable Unsafe Homebrew** on (HENkaku settings), and **`libshacccg.suprx`** in `ur0:data/` or `ur0:data/external/` — vitaGL compiles its shaders with it; extract it with [ShaRKBR33D](https://github.com/Rinnegatamante/ShaRKBR33D). kubridge is not needed.
+
 1. **The VPK:** install `UMK3-Vita.vpk` (from [Releases](https://github.com/gmejia11/UMK3-Vita/releases), or one you built) with VitaShell. It holds the port's code and its icon and LiveArea images, and none of the game's data.
 2. **The game's data, from your `.ipa`:** on a PC with Python 3, with this repository at the same version as the VPK:
    ```bash
